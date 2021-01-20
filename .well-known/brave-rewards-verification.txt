@@ -1,0 +1,4 @@
+This is a Brave Rewards publisher verification file.
+
+Domain: altilunium.github.io
+Token: 26fa8b14f321d23781c5ba876a9055fd0d93707550039f2ab3b3bf007d25a48c

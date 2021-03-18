@@ -2,6 +2,29 @@
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Farmasi - Kesehatan</title>
+
+</head>
+<style>
+	.rink{
+		margin-bottom: 9px;
+    margin-left: 24px;
+	}
+	.rink a{
+		text-decoration: none;
+    color: #0983bf;
+	}
+	h1 {
+		font-size: 25px;
+    margin-left: 23px;
+    margin-top: 31px;
+	}
+</style>
+<body>
+<h1 id='titleh1'></h1>
+<div id="ctn"></div>
+
+</body>
+
 <script>
 
 const queryString = window.location.search;
@@ -34,6 +57,9 @@ function shuffle(array) {
 	var xobj = new XMLHttpRequest();
 	xobj.overrideMimeType("application/json");
 	var datasource = urlParams.get('ds') + ".json"
+	titleh1 = document.getElementById('titleh1')
+	titleh1.innerHTML = urlParams.get('ds')
+	document.title = urlParams.get('ds')
 	xobj.open('GET', datasource, true);
 	xobj.onreadystatechange = function () {
 	if (xobj.readyState == 4 && xobj.status == "200") {
@@ -55,27 +81,6 @@ function shuffle(array) {
 
 	});
 	</script>
-</head>
-<style>
-	.rink{
-		margin-bottom: 9px;
-    margin-left: 24px;
-	}
-	.rink a{
-		text-decoration: none;
-    color: #0983bf;
-	}
-	h1 {
-		font-size: 25px;
-    margin-left: 23px;
-    margin-top: 31px;
-	}
-</style>
-<body>
-	<h1>Farmasi & Kesehatan</h1>
-<div id="ctn"></div>
-
-</body>
 
 </html>
 

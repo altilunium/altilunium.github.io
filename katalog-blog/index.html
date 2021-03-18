@@ -1,0 +1,81 @@
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Farmasi - Kesehatan</title>
+<script>
+
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+const datasource = urlParams.get('ds')
+console.log(datasource)
+
+
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+
+
+	function loadJSON(callback) {   
+	var xobj = new XMLHttpRequest();
+	xobj.overrideMimeType("application/json");
+	var datasource = urlParams.get('ds') + ".json"
+	xobj.open('GET', datasource, true);
+	xobj.onreadystatechange = function () {
+	if (xobj.readyState == 4 && xobj.status == "200") {
+	callback(JSON.parse(xobj.responseText));
+	}
+	};
+	xobj.send(null);  
+	}
+
+	loadJSON(function(json) {
+  		theList = json
+  		shuffle(theList)
+  		console.log(theList); // this will log out the json object
+  		ctn = document.getElementById('ctn')
+  		theList.forEach(function(item, index){
+  			console.log(item['title'])
+  			ctn.innerHTML += "<div class='rink'><a  href='"+item['url']+"'>"+item['title']+"</a><div>"
+  		})
+
+	});
+	</script>
+</head>
+<style>
+	.rink{
+		margin-bottom: 9px;
+    margin-left: 24px;
+	}
+	.rink a{
+		text-decoration: none;
+    color: #0983bf;
+	}
+	h1 {
+		font-size: 25px;
+    margin-left: 23px;
+    margin-top: 31px;
+	}
+</style>
+<body>
+	<h1>Farmasi & Kesehatan</h1>
+<div id="ctn"></div>
+
+</body>
+
+</html>
+

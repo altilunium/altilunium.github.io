@@ -24,6 +24,10 @@ width: 100%;
 	padding-top:10px;
 }
 
+.ppp{
+  display: fixed;
+}
+
 </style>
 </head>
 <body>
@@ -36,7 +40,7 @@ width: 100%;
 
 
 	 // initialize Leaflet
-      var map = L.map('mapid').setView({lat: -6.2771849693710475, lon: 107.00459361076356}, 15.5);
+      var map = L.map('mapid').setView({lat: -6.274028264225283, lon: 107.00688958168031}, 15.5);
 
       // add the OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -59,7 +63,7 @@ width: 100%;
     radius: 30
 }).addTo(map);
 
-      circle.bindPopup("<img src='https://pbs.twimg.com/media/E2i_OqUVcAUHa8p?format=jpg&name=large' width='200px'><br>4:52"	)
+      circle.bindPopup("<img src='https://pbs.twimg.com/media/E2i_OqUVcAUHa8p?format=jpg&name=large' width='300px'><br>4:52"	)
 
 
 var c2 = L.circle([-6.2790937208797715, 107.00692244986462], {
@@ -69,7 +73,20 @@ var c2 = L.circle([-6.2790937208797715, 107.00692244986462], {
     radius: 30
 }).addTo(map);
 
-c2.bindPopup("<img src='https://pbs.twimg.com/media/E2i-GgGVcAQHvzj?format=jpg&name=4096x4096' width='200px'><br>4:47"	)
+c2.bindPopup("<img src='https://pbs.twimg.com/media/E2i-GgGVcAQHvzj?format=jpg&name=4096x4096' width='300px'><br>4:47"	)
+
+
+
+
+var c3 = L.circle([-6.27135,107.00806], {
+    color: 'red',
+    fillColor: '#f03',
+    fillOpacity: 0.5,
+    radius: 30
+}).addTo(map);
+
+
+c3.bindPopup("<img src='https://pbs.twimg.com/media/E2jRLK5VoAQtTt7?format=jpg&name=large' width='300px'><br>6:10"  )
 
 
 

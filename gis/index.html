@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>chizu</title>
+	<link rel="stylesheet" href="leaflet.css" />
+<script src="leaflet.js"></script>
+<style>
+html,body,#mapid {
+height: 100%;
+width: 100%;
+}	
+
+#titl{
+	height: 40px;
+	width: 100%;
+	position: fixed;
+	left:0px;
+	top:0px;
+	background-color: blue;
+	color:white;
+	font-size:20px;
+	z-index: 99999;
+	text-align: center;
+	padding-top:10px;
+}
+
+</style>
+</head>
+<body>
+<div id="titl">Banjir Narogong - Rawalumbu : 29 Mei 2021</div>
+
+<div id="mapid"></div>
+
+
+<script>
+
+
+	 // initialize Leaflet
+      var map = L.map('mapid').setView({lat: -6.2771849693710475, lon: 107.00459361076356}, 15.5);
+
+      // add the OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+      }).addTo(map);
+
+      // show the scale bar on the lower left corner
+      L.control.scale().addTo(map);
+
+      // show a marker on the map
+      L.marker({lon: 0, lat: 0}).bindPopup('The center of the world').addTo(map);
+      var marker = L.marker([ 107.0026624769423,-6.274151974016329]).addTo(map);
+
+
+      var circle = L.circle([-6.272109823011663, 107.00174722869633], {
+    color: 'red',
+    fillColor: '#f03',
+    fillOpacity: 0.5,
+    radius: 30
+}).addTo(map);
+
+      circle.bindPopup("<img src='https://pbs.twimg.com/media/E2i_OqUVcAUHa8p?format=jpg&name=large' width='200px'><br>4:52"	)
+
+
+var c2 = L.circle([-6.2790937208797715, 107.00692244986462], {
+    color: 'red',
+    fillColor: '#f03',
+    fillOpacity: 0.5,
+    radius: 30
+}).addTo(map);
+
+c2.bindPopup("<img src='https://pbs.twimg.com/media/E2i-GgGVcAQHvzj?format=jpg&name=4096x4096' width='200px'><br>4:47"	)
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>chizu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="leaflet.css" />
+<script src="leaflet.js"></script>
+<style>
+html,body,#mapid {
+height: 100%;
+width: 100%;
+left:0px;
+position: fixed;
+}	
+
+#titl{
+	height: 40px;
+	width: 100%;
+	position: fixed;
+	left:0px;
+	top:0px;
+	background-color: #0c0c7b;
+	font-family: arial;
+	color:white;
+	font-size:20px;
+	z-index: 99999;
+	text-align: center;
+	padding-top:10px;
+  
+}
+
+.ppp{
+  display: fixed;
+}
+
+</style>
+</head>
+<body>
+<div id="titl">Bandung (yang saya tahu)</div>
+
+<div id="mapid"></div>
+
+
+<script>
+
+
+
+	 // initialize Leaflet
+      //var map = L.map('mapid').setView({lat:-6.902143002537081, lon: 107.61983871459962}, 13);
+
+
+
+      var map = L.map('mapid',{ zoomControl: false }).setView({lat: -6.9000979902697255, lng: 107.60679244995119},13)
+
+      // add the OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+      }).addTo(map);
+
+      // show the scale bar on the lower left corner
+      L.control.scale().addTo(map);
+
+      // show a marker on the map
+      L.marker({lon: 0, lat: 0}).bindPopup('The center of the world').addTo(map);
+      var marker = L.marker([ 107.0026624769423,-6.274151974016329]).addTo(map);
+
+
+      var circle = L.circle([-6.93403,107.56265], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 100
+}).addTo(map);
+
+      circle.bindPopup("<b>Tol Pasir Koja</b><br>Bus primajasa dari dan ke Bekasi datang lewat sini."	)
+
+
+var c2 = L.circle([-6.94591,107.59517], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c2.bindPopup("<b>Terminal Leuwipanjang</b><br>Bus dari Bekasi turun disini."	)
+
+
+
+
+var c3 = L.circle([-6.94544,107.59417], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+
+c3.bindPopup("<b>Terminal Leuwipanjang</b><br>Naik Bus Damri Dago disini"  )
+
+
+
+
+var c4 = L.circle([-6.94534,107.59416], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Terminal Leuwipanjang</b><br>Musholla. Kalau mau pergi dari Bandung / baru datang di Bandung, shalat dulu disini."  )
+
+
+
+
+var c4 = L.circle([-6.94553,107.59458], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Terminal Leuwipanjang</b><br>Restoran Padang."  )
+
+
+var c4 = L.circle([-6.94575,107.59312], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Terminal Leuwipanjang</b><br>Kalau mau ke Bekasi, naik bus Primajasa disini."  )
+
+
+
+var c4 = L.circle([-6.94630,107.59543], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Masjid</b><br>Kalau mau pergi dari Bandung / baru datang di Bandung, shalat dulu disini."  )
+
+
+  
+
+var c4 = L.circle([-6.89055,107.57457], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 100
+}).addTo(map);
+
+c4.bindPopup("<b>Tol Pasteur</b><br>Waktu SMA, datang ke Bandung naik mobil operasional sekolah, ke UPI, lewat tol ini. Waktu naik bus gratis Ganesha-Jatinangor, busnya lewat sini juga."  )
+
+
+
+
+
+
+var c4 = L.circle([-6.90074,107.62115], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 100
+}).addTo(map);
+
+c4.bindPopup("<b>Museum Geologi</b><br>Waktu SMP, perpisahan ke sini."  )
+
+
+
+
+
+var c4 = L.circle([-6.8920,107.6044], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 100
+}).addTo(map);
+
+c4.bindPopup("<b>Cihampelas</b><br>Sepanjang jalan, banyak pusat perbelanjaan. Waktu SMP perpisahan, busnya sengaja parkir disini, supaya siswa bisa jajan dan beli suvenir. Sekarang sudah dibangun 'skywalk', area pejalan kaki dan pedagang kaki limia yang dibangun tepat di atas jalan Cihampelas. Canggih deh."  )
+
+
+var c4 = L.circle([-6.86364,107.59004], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 100
+}).addTo(map);
+
+c4.bindPopup("<b>Masjid Daarut Tauhid</b><br>Masjidnya Aa Gym. Pernah shalat disini. Selalu ramai, meskipun bukan bulan Ramadhan. Setiap subuh, ada kajian Aa Gym disini."  )
+
+
+var c4 = L.circle([-6.86319,107.59286], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 100
+}).addTo(map);
+
+c4.bindPopup("<b>Gedung Achmad Sanusi UPI</b><br>Waktu SMA, pernah ikut lomba disini."  )
+
+
+var c4 = L.circle([-6.86390,107.58776], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Alfamart</b><br>Pernah belanja disini, sekali."  )
+
+
+var c4 = L.circle([-6.89400,107.61109], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Masjid Salman</b><br>Disini kita bisa ambil teh, kopi, dan air gratis. Tempat duduk-duduk. Tempat ketemuan."  )
+
+
+var c4 = L.circle([-6.89413,107.61122], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b><a href='http://salmanreadingcorner.web.id/'>Salman Reading Corner</a></b><br>Perpustakaan yang terbuka untuk umum."  )
+
+var c4 = L.circle([-6.89419,107.61097], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Kantin Salman</b><br>Rumah makan, prasmanan, lengkap, ada TVnya."  )
+
+
+var c4 = L.circle([-6.89435,107.61091], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Minimarket</b>"  )
+
+var c4 = L.circle([-6.89428,107.61105], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Tempat ngeprint, fotokopi dan beli pulsa</b>"  )
+
+
+var c4 = L.circle([-6.89410,107.61106], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 2
+}).addTo(map);
+
+c4.bindPopup("<b>Rumah Amal Salman</b><br>Bagi yang mau beramal, infak, shadaqah."  )
+
+
+var c4 = L.circle([-6.89377,107.61111], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 2
+}).addTo(map);
+
+c4.bindPopup("<b>Korsel</b><br>Koridor Selatan Masjid Salman"  )
+
+
+var c4 = L.circle([-6.89375,107.61133], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 2
+}).addTo(map);
+
+c4.bindPopup("<b>Kortim</b><br>Koridor Timur Masjid Salman"  )
+
+
+var c4 = L.circle([-6.89356,107.61125], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 2
+}).addTo(map);
+
+c4.bindPopup("<b>Korut</b><br>Koridor Utara Masjid Salman"  )
+
+
+var c4 = L.circle([-6.89366,107.61118], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Ruangan Utama Masjid Salman</b>"  )
+
+
+var c4 = L.circle([-6.89366,107.61118], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Ruangan Utama Masjid Salman</b>"  )
+
+
+var c4 = L.circle([-6.89481,107.61072], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 2
+}).addTo(map);
+
+c4.bindPopup("<b>Rumah Makan Minang 'Pak Datuak'</b><br>Langganan saya"  )
+
+
+
+var c4 = L.circle([-6.89487,107.60997], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 2
+}).addTo(map);
+
+c4.bindPopup("<b>Warung Nasi Sunda 'Prancis'</b>"  )
+
+var c4 = L.circle([-6.89381,107.60843], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Pangkalan Angkot Cisitu-Tegalega</b><br>Naik disini jika ingin ke Cisitu"  )
+
+
+var c4 = L.circle([-6.89376,107.61291], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Pangkalan Angkot Kalapa-Dago</b><br>Naik disini jika ingin ke Dago (utara)"  )
+
+
+var c4 = L.circle([-6.88853,107.60776], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Masjid Batan</b><br>Ada di dalam kompleks Batan. Tapi masjidnya bisa untuk umum. Ada perpustakaannya di dalam."  )
+
+var c4 = L.circle([-6.88724,107.61136], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Pangkalan Angkot Cisitu-Tegalega</b><br>Naik disini jika ingin ke Cisitu"  )
+
+
+var c4 = L.circle([-6.88902,107.61010], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Oktagon</b><br>Kelas PRD pas TPB. Tempat ujian Fisika pas TPB."  )
+
+
+var c4 = L.circle([-6.88903,107.61072], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Lab Fisika Dasar (LFD)</b><br>Di lantai duanya, ada tempat praktikum Fisika. Pas TPB, tiap minggu kesini, praktikum. Di lantai satunya, ada comlabs, tempat ngeprint, pinjam komputer (semacam warnet, tapi gratis, cukup tunjukkan KTM aja), install ulang OS, ngurus lisensi software."  )
+
+
+
+var c4 = L.circle([-6.88825,107.61076], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Perpus Pusat</b><br>Lantai satu, ada penitipan tas, ada tempat petugasnya (bagi yang mau minjam dan mengembalikan buku).<br> Lantai dua, buku-buku TPB, buku-buku jurusan teknik dan sains.<br> Lantai tiga, buku-buku sejarah, komputer, umum.<br>Lantai empat, buku-buku umum, jurnal-jurnal, koleksi koran dan ruang komputer yang bisa kita pakai gratis. Setiap lantai ada tempat duduknya untuk tempat baca dan tempat nugas. Ada colokan, ada wifi. Ada toilet di setiap lantai, di dekat tangganya. Ada lift. Biasa jadi tempat duduk-duduk selagi menunggu kelas selanjutnya. "  )
+
+
+
+var c4 = L.circle([-6.88841,107.61035], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Sekre ARC</b><br>Ada server-server di dalamnya."  )
+
+var c4 = L.circle([-6.88828,107.61122], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Center of Advanced Studies (CAS)</b><br>Ada lab akustik, lab nanomaterial, jurusan Matematika. Pernah kesini untuk ikut seminar Farmasi di lantai dasarnya. Perpustakaan Jurusan Matematika ada di sini."  )
+
+var c4 = L.circle([-6.88831,107.61002], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Gedung PAU (Pusat Antar Universitas)</b><br>Pernah naik ke rooftopnya buat ngerjain tugas pemetaan kampus. Itu aja."  )
+
+var c4 = L.circle([-6.88834,107.60956], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>CADL</b><br>Disini ada UPT Pusat Bahasa dan FSRD"  )
+
+
+var c4 = L.circle([-6.88805,107.60884], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Gedung SBM</b><br>Pernah kuliah disini waktu ngambil matkul 'Bisnis Berbasis Teknologi'. Pernah ikut event mesin M-FEST disini, seminar gitu. Di dalamnya ada perpustakaan SBM."  )
+
+
+var c4 = L.circle([-6.89003,107.60834], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Sekre Himpunan Mesin</b>"  )
+
+
+var c4 = L.circle([-6.89035,107.60884], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>GKU Barat</b><br>Banyak mata kuliah TPB ada disini. Di lantai dasarnya ada mushola, kantin, ATM Mandiri."  )
+
+
+var c4 = L.circle([-6.89058,107.60964], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Labtek 5</b><br>Tangga naik ke Labtek 5. Di lantai dasarnya ada sekre HMIF, fotokopi+ngeprint, musholla, toilet. Mayoritas matkul IF ada di gedung ini. Di lantai duanya ada tempat duduk, ruang rapat, ruang kaprodi, ruang lab. Di lantai tiganya ada Perpus STEI dan banyak ruang kelas. Di lantai empatnya banyak lab."  )
+
+var c4 = L.circle([-6.89063,107.61021], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Labtek 5</b><br>Tangga naik ke Labtek 5. Di lantai duanya ada TU STEI. "  )
+
+
+var c4 = L.circle([-6.89058,107.61093], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Labtek 8</b><br>Teknik Elektro "  )
+
+
+var c4 = L.circle([-6.89014,107.61090], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Labtek 7</b><br>Farmasi "  )
+
+
+var c4 = L.circle([-6.89034,107.61210], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>GKU Timur</b><br>Matkul TPB banyak disini. Di lantai paling atasnya ada ruang kelas massal. Di lantai dasarnya ada Career Center. "  )
+
+
+var c4 = L.circle([-6.89083,107.60901], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Lab Konversi</b><br>Kelas PAR (Pengantar Analisis Rangkaian) pernah diadakan disini. Ngumpulin tugas PAR juga biasa kesini. Isinya banyak mesin-mesin listrik yang besar. "  )
+
+
+var c4 = L.circle([-6.89122,107.61000], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>CC Barat</b><br>Di lantai dasar, ada LK (Lembaga Kemahasiswaan), untuk ngurus beasiswa atau lomba. Di lantai satu ada sekre KM ITB, URO (Robotika), UKM (Kesenian Minang)"  )
+
+
+var c4 = L.circle([-6.89120,107.61077], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>CC Timur</b><br>Di basementnya, ada 'Auditorium', tempat seminar dan pertemuan. "  )
+
+
+var c4 = L.circle([-6.89201,107.61066], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Kantor Cabang Mandiri</b><br>Ada kantor cabang Bank Mandiri di dalam kampus. "  )
+
+
+var c4 = L.circle([-6.89217,107.61055], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 2
+}).addTo(map);
+
+c4.bindPopup("<b>KKP ITB (Koperasi Keluarga Pegawai ITB)</b><br>Minimarket. Jual alat tulis. Jual nasi box kalau siang.  "  )
+
+
+
+var c4 = L.circle([-6.89223,107.61056], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 2
+}).addTo(map);
+
+c4.bindPopup("<b>ATM Center</b><br>Mandiri, BCA.  "  )
+
+
+var c4 = L.circle([-6.88487,107.61402], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(map);
+
+c4.bindPopup("<b>Pasar Simpang Dago</b><br>Lengkap. Mulai dari sembako, sayur, daging, perabotan. Waktu pertama kali sampai di Bandung, harus kesini dulu untuk beli perabot kos. Kalau weekend iseng mau masak, silahkan beli bahan-bahannya disini.  "  )
+
+
+var c4 = L.circle([-6.88294,107.61166], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Rumah Makan 'Palanta Minang'</b><br>Langganan saya"  )
+
+
+var c4 = L.circle([-6.88299,107.61123], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Soto Ayam</b>"  )
+
+
+var c4 = L.circle([-6.88231,107.61185], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Sabana Fried Chicken</b>"  )
+
+
+var c4 = L.circle([-6.88069,107.61231], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Masjid Ar Rahim</b><br>Ada kajian rutin Sabtu Subuh disini."  )
+
+
+var c4 = L.circle([-6.88059,107.61194], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 2
+}).addTo(map);
+
+c4.bindPopup("<b>Nasi Goreng</b><br>Di depan Asrama Demang Lehman. Buka menjelang magrib sampai malam.")
+
+
+
+
+var c4 = L.circle([-6.88072,107.61200], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 4
+}).addTo(map);
+
+c4.bindPopup("<b>Warkop Kameumeut</b><br>Teh manis, indomie, bubur kacang")
+
+
+var c4 = L.circle([-6.87940,107.61265], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Sadikin</b><br>Teh manis, indomie, bubur kacang")
+
+
+var c4 = L.circle([-6.87947,107.61361], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Warung</b><br>Beli air botolan, sabun, pasta gigi, deterjen, kue dan snack.")
+
+
+var c4 = L.circle([-6.87967,107.61180], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Corner Cell</b><br>Isi pulsa")
+
+
+var c4 = L.circle([-6.87969,107.61163], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Rumah Makan Minang 'Talago Biru'</b><br>Langganan")
+
+
+var c4 = L.circle([-6.87967,107.61207], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Rumah Makan Minang 'Situjaya'</b><br>Langganan. ")
+
+
+var c4 = L.circle([-6.87981,107.61203], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Indomaret</b><br>Ada ATMnya di dalam")
+
+var c4 = L.circle([-6.87992,107.61200], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Ganto Pulsa & Laundry</b>")
+
+
+
+var c4 = L.circle([-6.88003,107.61211], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Rumah Makan 'Palanta Minang II'</b><br> Langganan. Ada TVnya. Menunya lengkap.")
+
+var c4 = L.circle([-6.87998,107.61203], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Rumah Makan Minang 'Ngalau Indah'</b> Langganan. ")
+
+
+var c4 = L.circle([-6.87947,107.61234], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Angkot Cisitu-Tegalega</b><br>Naik angkot ini jika mau cepat ke kampus. ")
+
+
+
+
+var c4 = L.circle([-6.89229,107.61783], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 20
+}).addTo(map);
+
+c4.bindPopup("<b>Pangkalan Damri</b><br>Kalau mau ke Bekasi. Naik bus Damri ini, turun di Terminal Leuwipanjang. Lanjutkan naik Primajasa ")
+
+
+var c4 = L.circle([-6.90842,107.61396], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 20
+}).addTo(map);
+
+c4.bindPopup("<b>Dispusip Kota Bandung</b><br>Perpustakaan umum")
+
+
+var c4 = L.circle([-6.90793,107.61033], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 20
+}).addTo(map);
+
+c4.bindPopup("<b>Gramedia</b><br>Beli buku")
+
+
+var c4 = L.circle([-6.90810,107.60889], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 20
+}).addTo(map);
+
+c4.bindPopup("<b>BEC (Bandung Electronic Center)</b><br>Beli dan service HP, laptop, printer, elektronik, dll.")
+
+
+var c4 = L.circle([-6.90940,107.60939], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Masjid</b><br>Masjid di dekat BEC")
+
+
+var c4 = L.circle([-6.9317611925013605, 107.62256773244864], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 60
+}).addTo(map);
+
+c4.bindPopup("<b>Pasar Buku Palasari</b><br>Pasar buku baru dan bekas.")
+
+
+var c4 = L.circle([-6.87564,107.61326], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>Terminal Angkot Cisitu Tegalega</b>")
+
+
+var c4 = L.circle([-6.87549,107.61332], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 5
+}).addTo(map);
+
+c4.bindPopup("<b>GOR Bulutangkis Cisitu</b>")
+
+var c4 = L.circle([-6.87562,107.61388], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Warung</b>")
+
+var c4 = L.circle([-6.87337,107.61385], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 3
+}).addTo(map);
+
+c4.bindPopup("<b>Bakso Barokah</b><br>Mie ayam, bakso. Cozy untuk ngumpul-ngumpul bareng temen. Viewnya bagus di lantai dua.")
+
+var c4 = L.circle([-6.87356,107.61142], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 40
+}).addTo(map);
+
+c4.bindPopup("<b>Futsal Pasaga</b>")
+
+
+var c4 = L.circle([-6.9175815271717775, 107.60419494325626], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 80
+}).addTo(map);
+
+c4.bindPopup("<b>Pasar Baru</b><br>Pernah beli baju dan jaket disini. Mobil Damri Dago-Leuwipanjang lewat sini.")
+
+var c4 = L.circle([-6.921646014387414, 107.6066881444727], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.5,
+    radius: 80
+}).addTo(map);
+
+c4.bindPopup("<b>Masjid Agung Bandung</b><br>Lapangannya rumput sintetik.")
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
+
+
+

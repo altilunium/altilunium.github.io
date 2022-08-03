@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>psedex</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		body {
+			font-family : Arial, Helvetica, sans-serif
+		}
+        .thread {
+            border-left: 1px solid blue;
+			border-top: 1px solid blue;
+            padding: 10px;
+			margin-top:3px;
+        }
+		.thread h3{
+			padding:0px;
+			margin:0px;
+		}
+		.thread p{
+			padding:0px;
+			margin:0px;
+		}
+		#close{
+			position:fixed;
+			width:50px;
+			height:50px;
+			border-radius:200px;
+			background-color:red;
+			z-index:99;
+			right:20px;
+			bottom:20px;
+		}
+		.quotelink{
+			display:none;
+		}
+        .deadlink {
+            display: none;
+        }
+	</style>
+</head>
+<body>
+	<div id="mother"></div>
+	<div id="mother2"></div>
+	<div id="close" onclick="back()"></div>
+</body>
+<script>
+
+
+ 
+var json = ""
+var n = 0
+var currentPtr = ""
+
+
+async function loadJSON() {
+	
+	//var uri = "http://www.whateverorigin.org/get?url=" + encodeURIComponent("https://a.4cdn.org/a/catalog.json")
+    var uri = "https://still-dusk-28968.herokuapp.com/https://a.4cdn.org/a/catalog.json"
+	const response = await fetch(uri, { method: 'GET'});
+   	json = await response.json();
+	console.log(json)
+	
+	json.forEach(iter)
+	
+	function iter(v, i, a) {
+		console.log(v['threads'])
+		v['threads'].forEach(iter_2)
+
+		function iter_2(v, i, a) {
+			console.log(v)
+            var mother = document.getElementById('mother')
+			var container = document.createElement("div")
+			container.classList.add("thread")
+			container.setAttribute('onclick', "showThread(" + v['no'] + ")" )
+			var title = document.createElement("p")
+
+			if (v['sub']) {
+                var t_title = document.createElement("h3")
+                t_title.innerHTML = v['sub']
+                container.appendChild(t_title)
+			}
+			
+			
+			title.innerHTML = v['com']
+			
+			container.appendChild(title)
+			mother.appendChild(container)
+
+        }
+    }
+
+    
+   
+	}
+
+	async function showThread(x) {
+		var mother = document.getElementById('mother')
+		mother.style.display = "none"
+        var uri = "https://still-dusk-28968.herokuapp.com/https://a.4cdn.org/a/thread/"+x+".json"
+        const response = await fetch(uri, { method: 'GET' });
+        json = await response.json();
+		console.log(json)
+		json['posts'].forEach(iter3)
+
+		function iter3(v, i, a) {
+            var mother_th = document.getElementById('mother2')
+			var container = document.createElement("div")
+			container.classList.add("thread")
+			container.setAttribute('id',v['no'])
+			var title = document.createElement("p")
+			var textstr = v['com']
+			if (textstr) {
+				textstr = textstr.replace('<br>', '')
+            }
+			title.innerHTML = textstr
+			container.appendChild(title)
+			var isPosted = false
+			if (v['com']) {
+				
+                var regex = new RegExp("#p([0-9]+)","g")
+				var catchall = v['com'].matchAll(regex)
+				
+				for (var match of catchall) {
+					console.log(match[1])
+					if (match[1]) {
+						console.log("Checking..")
+						console.log(match[1])
+						if (document.getElementById(match[1])) {
+                            var t = document.getElementById(match[1])
+                            t.appendChild(container)
+                            isPosted = true
+                        }
+                        
+                    }
+					
+				}
+				if (!isPosted) {
+                    mother_th.appendChild(container)
+                }
+            }
+			
+
+            
+            
+        }
+	}
+
+	function back() {
+        var mother = document.getElementById('mother')
+		mother.style.display = "block"
+		var mother2 = document.getElementById('mother2')
+		mother2.innerHTML = ""
+    }
+
+
+loadJSON()
+
+
+</script>
+</html>

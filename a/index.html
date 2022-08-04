@@ -89,7 +89,17 @@ async function loadJSON() {
             var mother = document.getElementById('mother')
 			var container = document.createElement("div")
 			container.classList.add("thread")
-			container.setAttribute('onclick', "showThread(" + v['no'] + ")" )
+			container.setAttribute('onclick', "showThread(" + v['no'] + ")")
+
+            if (v['filename']) {
+                var img = document.createElement("a")
+                var imgurl = "https://i.4cdn.org/" + board + "/" + v['tim'] + v['ext']
+                img.setAttribute("href", imgurl)
+                img.setAttribute("target", "_blank")
+                img.innerHTML = "img"
+                container.appendChild(img)
+            }
+
 			var title = document.createElement("p")
 
 			if (v['sub']) {
@@ -126,35 +136,53 @@ async function loadJSON() {
 			container.classList.add("thread")
 			container.setAttribute('id',v['no'])
 			var title = document.createElement("p")
-			var textstr = v['com']
-			if (textstr) {
-				textstr = textstr.replace('<br>', '')
+
+			if (v['filename']) {
+				var img = document.createElement("a")
+                var imgurl = "https://i.4cdn.org/" + board +"/" +v['tim'] +v['ext']
+				img.setAttribute("href", imgurl)
+				img.setAttribute("target","_blank")
+				img.innerHTML = "img"
+				container.appendChild(img)
             }
-			title.innerHTML = textstr
-			container.appendChild(title)
+			
+			
+
 			var isPosted = false
+
+
 			if (v['com']) {
-				
-                var regex = new RegExp("#p([0-9]+)","g")
+
+                var textstr = v['com']
+                if (textstr) {
+                    textstr = textstr.replace('<br>', '')
+                }
+                title.innerHTML = textstr
+                container.appendChild(title)
+
+				var regex = new RegExp("#p([0-9]+)", "g")
 				var catchall = v['com'].matchAll(regex)
-				
+
 				for (var match of catchall) {
 					console.log(match[1])
 					if (match[1]) {
 						console.log("Checking..")
 						console.log(match[1])
 						if (document.getElementById(match[1])) {
-                            var t = document.getElementById(match[1])
-                            t.appendChild(container)
-                            isPosted = true
-                        }
-                        
-                    }
-					
+							var t = document.getElementById(match[1])
+							t.appendChild(container)
+							isPosted = true
+						}
+
+					}
+
 				}
 				if (!isPosted) {
-                    mother_th.appendChild(container)
-                }
+					mother_th.appendChild(container)
+				}
+			}
+			else {
+                mother_th.appendChild(container)
             }
 			
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>/a/</title>
+	<title>psedex</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<style>
 		body {
@@ -52,11 +52,28 @@ var json = ""
 var n = 0
 var currentPtr = ""
 
+function findGetParameter(parameterName) {
+    var result = null,
+        tmp = [];
+    location.search
+        .substr(1)
+        .split("&")
+        .forEach(function (item) {
+            tmp = item.split("=");
+            if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+        });
+    return result;
+	}
+
+	console.log(findGetParameter("b"))
+
+    var board = findGetParameter("b")
+
 
 async function loadJSON() {
 	
 	//var uri = "http://www.whateverorigin.org/get?url=" + encodeURIComponent("https://a.4cdn.org/a/catalog.json")
-    var uri = "https://still-dusk-28968.herokuapp.com/https://a.4cdn.org/a/catalog.json"
+    var uri = "https://still-dusk-28968.herokuapp.com/https://a.4cdn.org/"+board+"/catalog.json"
 	const response = await fetch(uri, { method: 'GET'});
    	json = await response.json();
 	console.log(json)
@@ -97,7 +114,7 @@ async function loadJSON() {
 	async function showThread(x) {
 		var mother = document.getElementById('mother')
 		mother.style.display = "none"
-        var uri = "https://still-dusk-28968.herokuapp.com/https://a.4cdn.org/a/thread/"+x+".json"
+        var uri = "https://still-dusk-28968.herokuapp.com/https://a.4cdn.org/"+board+"/thread/"+x+".json"
         const response = await fetch(uri, { method: 'GET' });
         json = await response.json();
 		console.log(json)

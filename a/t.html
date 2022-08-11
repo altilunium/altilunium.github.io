@@ -48,7 +48,7 @@
 <body>
     <div id="mother">...</div>
     <div id="mother2"></div>
-    <div id="close" onclick="back()"></div>
+    
 </body>
 <script>
 
@@ -158,8 +158,39 @@ var tnode = [];
     }
 
 
-showThread(tid)
 
+
+
+    String.prototype.hashCode = function () {
+        var hash = 0, i, chr;
+        if (this.length === 0) return hash;
+        for (i = 0; i < this.length; i++) {
+            chr = this.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    };
+
+
+    if (localStorage.getItem('himi') == 'ok') {
+        showThread(tid)
+    }
+    else if (localStorage.getItem('himi') == 'nok') {
+        //do nothing
+    }
+    else {
+        var himi = prompt(":)")
+        console.log(himi.hashCode())
+        if (himi.hashCode() == 3511162) {
+            localStorage.setItem('himi', 'ok')
+            showThread(tid)
+        }
+        else {
+            localStorage.setItem('himi', 'nok')
+        }
+
+    }
 
 
 

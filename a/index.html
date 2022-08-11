@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>psedex</title>
+	<title>chtnl</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<style>
 		body {
@@ -37,10 +37,22 @@
         .deadlink {
             display: none;
         }
+        .imgc {
+            padding: 7px;
+            width: 47px;
+            background-color: #0ca3dd;
+            margin-bottom: -3px;
+            margin-top: 16px;
+        }
+		.imgc a{
+			color :white;
+			text-decoration:none;
+		}
+
 	</style>
 </head>
 <body>
-	<div id="mother"></div>
+	<div id="mother">...</div>
 	<div id="mother2"></div>
 	<div id="close" onclick="back()"></div>
 </body>
@@ -68,7 +80,9 @@ function findGetParameter(parameterName) {
 	console.log(findGetParameter("b"))
 
     var board = findGetParameter("b")
-
+    
+    
+var tnode = [];
 
 async function loadJSON() {
 	
@@ -77,119 +91,86 @@ async function loadJSON() {
 	const response = await fetch(uri, { method: 'GET'});
    	json = await response.json();
 	console.log(json)
+	var mother = document.getElementById('mother')
+	
 	
 	json.forEach(iter)
+	
+
 	
 	function iter(v, i, a) {
 		console.log(v['threads'])
 		v['threads'].forEach(iter_2)
 
 		function iter_2(v, i, a) {
-			console.log(v)
-            var mother = document.getElementById('mother')
-			var container = document.createElement("div")
-			container.classList.add("thread")
-			container.setAttribute('onclick', "showThread(" + v['no'] + ")")
-
-            if (v['filename']) {
-                var img = document.createElement("a")
-                var imgurl = "https://i.4cdn.org/" + board + "/" + v['tim'] + v['ext']
-                img.setAttribute("href", imgurl)
-                img.setAttribute("target", "_blank")
-                img.innerHTML = "img"
-                container.appendChild(img)
-            }
-
-			var title = document.createElement("p")
-
-			if (v['sub']) {
-                var t_title = document.createElement("h3")
-                t_title.innerHTML = v['sub']
-                container.appendChild(t_title)
-			}
-			
-			
-			title.innerHTML = v['com']
-			
-			container.appendChild(title)
-			mother.appendChild(container)
-
+			tnode.push(v);
         }
     }
 
-    
+	tnode.sort((a, b) => b.replies - a.replies)
+	mother.innerHTML = ""
+	console.log(tnode)
+	tnode.forEach(render)
+
+	function render(v, i, a) {
+        var mother = document.getElementById('mother')
+		var container = document.createElement("div")
+        var ccon = document.createElement("div")
+        container.classList.add("thread")
+		container.setAttribute('onclick', "showThread(" + v['no'] + ")")
+		ccon.classList.add("imgc")
+        var imgst = v['tim'] + v['ext']
+        ccon.setAttribute('onclick', "showImg('" + imgst + "')")
+
+        if (v['filename']) {
+            var img = document.createElement("a")
+            var imgurl = "https://i.4cdn.org/" + board + "/" + v['tim'] + v['ext']
+            img.setAttribute("href", imgurl)
+            img.setAttribute("target", "_blank")
+            img.innerHTML = "img"
+            ccon.appendChild(img)
+        }
+
+		var title = document.createElement("p")
+
+
+        var t_title = document.createElement("h3")
+        t_title.innerHTML = "[" + v['replies'] + "]  "
+		
+
+
+        if (v['sub']) {
+            t_title.innerHTML +=  v['sub']
+        }
+        if (v['com']) {
+            title.innerHTML = v['com']
+		}
+
+
+        container.appendChild(t_title)
+		container.appendChild(title)
+		
+		mother.appendChild(ccon)
+		mother.appendChild(container)
+    }
+
+
+
    
 	}
 
 	async function showThread(x) {
-		var mother = document.getElementById('mother')
-		mother.style.display = "none"
-        var uri = "https://still-dusk-28968.herokuapp.com/https://a.4cdn.org/"+board+"/thread/"+x+".json"
-        const response = await fetch(uri, { method: 'GET' });
-        json = await response.json();
-		console.log(json)
-		json['posts'].forEach(iter3)
-
-		function iter3(v, i, a) {
-            var mother_th = document.getElementById('mother2')
-			var container = document.createElement("div")
-			container.classList.add("thread")
-			container.setAttribute('id',v['no'])
-			var title = document.createElement("p")
-
-			if (v['filename']) {
-				var img = document.createElement("a")
-                var imgurl = "https://i.4cdn.org/" + board +"/" +v['tim'] +v['ext']
-				img.setAttribute("href", imgurl)
-				img.setAttribute("target","_blank")
-				img.innerHTML = "img"
-				container.appendChild(img)
-            }
-			
-			
-
-			var isPosted = false
-
-
-			if (v['com']) {
-
-                var textstr = v['com']
-                if (textstr) {
-                    textstr = textstr.replace('<br>', '')
-                }
-                title.innerHTML = textstr
-                container.appendChild(title)
-
-				var regex = new RegExp("#p([0-9]+)", "g")
-				var catchall = v['com'].matchAll(regex)
-
-				for (var match of catchall) {
-					console.log(match[1])
-					if (match[1]) {
-						console.log("Checking..")
-						console.log(match[1])
-						if (document.getElementById(match[1])) {
-							var t = document.getElementById(match[1])
-							t.appendChild(container)
-							isPosted = true
-						}
-
-					}
-
-				}
-				if (!isPosted) {
-					mother_th.appendChild(container)
-				}
-			}
-			else {
-                mother_th.appendChild(container)
-            }
-			
-
-            
-            
-        }
+        window.open("t.html?b=" + board + "&t=" + x, '_blank').focus();
 	}
+
+    async function showImg(x) {
+		
+		window.open("https://i.4cdn.org/" + board + "/" + x, '_blank').focus();
+	}
+
+    
+
+
 
 	function back() {
         var mother = document.getElementById('mother')

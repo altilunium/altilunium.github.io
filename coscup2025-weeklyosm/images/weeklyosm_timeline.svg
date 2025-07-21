@@ -1,0 +1,173 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="timelineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2196F3;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e9ecef;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bgGradient)"/>
+
+
+
+  <!-- Main timeline line -->
+  <line x1="80" y1="150" x2="720" y2="150" stroke="url(#timelineGradient)" stroke-width="8" filter="url(#shadow)"/>
+
+  <!-- Start point (2010) -->
+  <circle cx="80" cy="150" r="12" fill="#4CAF50" filter="url(#shadow)"/>
+  <text x="80" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
+    2010
+  </text>
+  <text x="80" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">
+    First Issue
+  </text>
+  <text x="80" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">
+    (German)
+  </text>
+
+  <!-- Multi-language milestone (2014 - Issue #220) -->
+  <circle cx="280" cy="150" r="10" fill="#E91E63" filter="url(#shadow)"/>
+  <text x="280" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">
+    2014
+  </text>
+  <text x="280" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    Issue #220
+  </text>
+  <text x="280" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">
+    Multi-language
+  </text>
+
+  <!-- End point (August 2025) -->
+  <circle cx="720" cy="150" r="12" fill="#2196F3" filter="url(#shadow)"/>
+  <text x="720" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
+    Aug 2025
+  </text>
+  <text x="720" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">
+    Issue #780+
+  </text>
+
+  <!-- Milestone markers -->
+  <!-- 300 issues -->
+  <circle cx="380" cy="150" r="8" fill="#FF9800"/>
+  <text x="380" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">
+    #300
+  </text>
+  <text x="380" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">
+    2016
+  </text>
+
+  <!-- 500 issues -->
+  <circle cx="520" cy="150" r="8" fill="#FF9800"/>
+  <text x="520" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">
+    #500
+  </text>
+  <text x="520" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">
+    2020
+  </text>
+
+  <!-- 15th Anniversary marker -->
+  <circle cx="620" cy="150" r="10" fill="#9C27B0"/>
+  <text x="620" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">
+    15 Years!
+  </text>
+  <text x="620" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">
+    2025
+  </text>
+
+  <!-- Statistics boxes -->
+  <!-- Languages box -->
+  <rect x="50" y="250" width="150" height="120" rx="10" fill="#fff" filter="url(#shadow)"/>
+  <text x="125" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#4CAF50">
+    15+
+  </text>
+  <text x="125" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#333">
+    Languages
+  </text>
+  <text x="125" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    🇬🇧 🇩🇪 🇫🇷 🇯🇵 🇨🇳
+  </text>
+  <text x="125" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    🇪🇸 🇮🇹 🇷🇺 🇵🇹 🇳🇱
+  </text>
+  <text x="125" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    and more...
+  </text>
+
+  <!-- Global reach box -->
+  <rect x="225" y="250" width="150" height="120" rx="10" fill="#fff" filter="url(#shadow)"/>
+  <text x="300" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2196F3">
+    Global
+  </text>
+  <text x="300" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#333">
+    Community
+  </text>
+  <text x="300" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    🌍 Worldwide
+  </text>
+  <text x="300" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    Contributors
+  </text>
+  <text x="300" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    24/7 Coverage
+  </text>
+
+  <!-- Zero missed weeks box -->
+  <rect x="400" y="250" width="150" height="120" rx="10" fill="#fff" filter="url(#shadow)"/>
+  <text x="475" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#E91E63">
+    0
+  </text>
+  <text x="475" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#333">
+    Missed Weeks
+  </text>
+  <text x="475" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    ✓ Every week
+  </text>
+  <text x="475" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    since 2014
+  </text>
+  <text x="475" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    No breaks!
+  </text>
+
+  <!-- Volunteer driven box -->
+  <rect x="575" y="250" width="150" height="120" rx="10" fill="#fff" filter="url(#shadow)"/>
+  <text x="650" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FF9800">
+    100%
+  </text>
+  <text x="650" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#333">
+    Volunteer
+  </text>
+  <text x="650" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    👥 Community
+  </text>
+  <text x="650" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    Driven
+  </text>
+  <text x="650" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    No corporate $
+  </text>
+
+  <!-- Bottom tagline -->
+  <text x="400" y="450" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-style="italic" fill="#555">
+    "What does it take to maintain consistency for over 15 years?"
+  </text>
+
+  <!-- Taiwan highlight -->
+  <text x="400" y="482" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FF6B6B">
+    🇹🇼  🇯🇵 Taiwan &amp; Japan: A Key Contributor to Global OSM Community
+  </text>
+
+  <!-- Decorative elements -->
+  <circle cx="80" cy="80" r="3" fill="#4CAF50" opacity="0.5"/>
+  <circle cx="720" cy="80" r="3" fill="#2196F3" opacity="0.5"/>
+  <circle cx="60" cy="520" r="2" fill="#FF9800" opacity="0.5"/>
+  <circle cx="740" cy="520" r="2" fill="#E91E63" opacity="0.5"/>
+</svg>

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="746" height="499" viewBox="0 0 746 499"
+     style="fill:none;stroke:none;fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;"
+     version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <style class="text-font-style fontImports" data-font-family="Roboto">@import
+        url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=block');
+    </style>
+    <g id="items" style="isolation: isolate">
+        <g id="blend" style="mix-blend-mode: normal">
+            <g id="g-root-0.cu_sy_v9vaqh18fit53-fill" data-item-order="-102605"
+               transform="translate(244.00006103515625, 158.99969482421875)">
+                <g id="0.cu_sy_v9vaqh18fit53-fill" stroke="none" fill="url(#gradient-cbcbcb-248399021)">
+                    <g>
+                        <path d="M 25.7548 70.52L 69.5204 70.52L 69.52 26.333C 87.2784 15.9502 107.9443 10 130 10C 151.233 10 171.177 15.5145 188.48 25.1894L 188.48 70.5201L 234.245 70.5201C 244.27 88.0525 250 108.3571 250 130C 250 151.643 244.27 171.948 234.245 189.48L 188.481 189.48L 188.481 234.81C 171.178 244.485 151.233 250 130 250C 107.9443 250 87.2784 244.05 69.5199 233.667L 69.5199 189.48L 25.7551 189.48C 15.7297 171.948 10 151.643 10 130C 10 108.3571 15.7296 88.0524 25.7548 70.52Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-4.cu_sy_qu1sm118fitxc-fill" data-item-order="-102601"
+               transform="translate(207.51995849609375, 123.51995849609375)">
+                <g id="4.cu_sy_qu1sm118fitxc-fill" stroke="none" fill="url(#gradient-fdac61-172712277)">
+                    <g>
+                        <path d="M 58.0004 106C 45.716 106.0001 33.4316 101.3138 24.0589 91.9411C 5.3137 73.196 5.3137 42.804 24.0589 24.0589C 42.804 5.3137 73.196 5.3137 91.9411 24.0589C 101.3137 33.4315 106 45.7157 106 58L 106.0004 106L 58.0114 106C 58.0077 106 58.0041 106 58.0004 106Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-3.cu_sy_dila8p18fivi9-fill" data-item-order="-102597"
+               transform="translate(207.51995849609375, 338.47991943359375)">
+                <g id="3.cu_sy_dila8p18fivi9-fill" stroke="none" fill="url(#gradient-bceb57-497517668)">
+                    <g>
+                        <path d="M 106 58C 106.0001 70.2844 101.3138 82.5688 91.9411 91.9415C 73.196 110.687 42.804 110.687 24.0589 91.9415C 5.3137 73.1964 5.3137 42.8044 24.0589 24.0593C 33.4315 14.6867 45.7157 10.0004 58 10.0004L 106 10L 106 57.989C 106 57.9927 106 57.9963 106 58Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-2.cu_sy_4nkr2x18fit56-fill" data-item-order="-102593"
+               transform="translate(422.48052978515625, 338.48016357421875)">
+                <g id="2.cu_sy_4nkr2x18fit56-fill" stroke="none" fill="url(#gradient-64edab-240055791)">
+                    <g>
+                        <path d="M 10 58C 9.999903 70.2844 14.6862 82.5688 24.0589 91.9415C 42.804 110.687 73.1959 110.687 91.9411 91.9415C 110.686 73.1964 110.686 42.8044 91.9411 24.0593C 82.5685 14.6867 70.2843 10.0004 58 10.0004L 10.000002 10L 10 57.989C 10 57.9927 10 57.9963 10 58Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-1.cu_sy_7r8yh18fitxf-fill" data-item-order="-102589"
+               transform="translate(422.47979736328125, 123.52020263671875)">
+                <defs>
+                    <linearGradient id="gradient-cbcbcb-248399021" x2="0" y2="1">
+                        <stop offset="0" stop-color="#d9d9d9"></stop>
+                        <stop offset="1" stop-color="#bcbcbc"></stop>
+                    </linearGradient>
+                    <linearGradient id="gradient-fdac61-172712277" x2="0" y2="1">
+                        <stop offset="0" stop-color="#ffc188"></stop>
+                        <stop offset="1" stop-color="#fa963a"></stop>
+                    </linearGradient>
+                    <linearGradient id="gradient-bceb57-497517668" x2="0" y2="1">
+                        <stop offset="0" stop-color="#cff976"></stop>
+                        <stop offset="1" stop-color="#a8dd38"></stop>
+                    </linearGradient>
+                    <linearGradient id="gradient-64edab-240055791" x2="0" y2="1">
+                        <stop offset="0" stop-color="#83fac1"></stop>
+                        <stop offset="1" stop-color="#44e095"></stop>
+                    </linearGradient>
+                    <linearGradient id="gradient-4dd3ff-378786070" x2="0" y2="1">
+                        <stop offset="0" stop-color="#7fdfff"></stop>
+                        <stop offset="1" stop-color="#1ac6ff"></stop>
+                    </linearGradient>
+                </defs>
+                <g id="1.cu_sy_7r8yh18fitxf-fill" stroke="none" fill="url(#gradient-4dd3ff-378786070)">
+                    <g>
+                        <path d="M 58 106C 70.2844 106.0001 82.5688 101.3138 91.9415 91.9411C 110.687 73.196 110.687 42.804 91.9415 24.0589C 73.1964 5.3137 42.8044 5.3137 24.0593 24.0589C 14.6867 33.4315 10.0004 45.7157 10.0004 58L 10 106L 57.989 106C 57.9927 106 57.9963 106 58 106Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx_osm_1qd8aop18fiuj0-fill" data-item-order="0" transform="translate(250, 39)">
+                <g id="tx_osm_1qd8aop18fiuj0-fill" stroke="none" fill="#484848">
+                    <g>
+                        <text style="font: bold 20px &quot;Roboto&quot;, sans-serif; white-space: pre;"
+                              font-weight="bold" font-size="20px" font-family="'Roboto', sans-serif">
+                            <tspan x="14.19" y="35" dominant-baseline="ideographic">weeklyOSM workflows</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx__zn72u118fn2mj-fill" data-item-order="0" transform="translate(15, 99)">
+                <g id="tx__zn72u118fn2mj-fill" stroke="none" fill="#de8431">
+                    <g>
+                        <text style="font: bold 20px &quot;Roboto&quot;, sans-serif; white-space: pre;"
+                              font-weight="bold" font-size="20px" font-family="'Roboto', sans-serif">
+                            <tspan x="16" y="35" dominant-baseline="ideographic">Collection page</tspan>
+                            <tspan x="16" y="59" dominant-baseline="ideographic">for topics</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx_osmbc_4lpi5518fn091-fill" data-item-order="0" transform="translate(543, 123)">
+                <g id="tx_osmbc_4lpi5518fn091-fill" stroke="none" fill="#1eabda">
+                    <g>
+                        <text style="font: bold 20px &quot;Roboto&quot;, sans-serif; white-space: pre;"
+                              font-weight="bold" font-size="20px" font-family="'Roboto', sans-serif">
+                            <tspan x="12" y="35" dominant-baseline="ideographic">OSMBC tool</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx__1cws5y118fn219-fill" data-item-order="0" transform="translate(27, 159)">
+                <g id="tx__1cws5y118fn219-fill" stroke="none" fill="#484848">
+                    <g>
+                        <text style="font: 15px &quot;Roboto&quot;, sans-serif; white-space: pre;" font-size="15px"
+                              font-family="'Roboto', sans-serif">
+                            <tspan x="14" y="29" dominant-baseline="ideographic">Topic proposal from</tspan>
+                            <tspan x="14" y="47" dominant-baseline="ideographic">reader with URL</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-male_zqxr1518fiuj1-fill" data-item-order="0" transform="translate(231, 147)"></g>
+            <g id="g-root-vert_18egobd18g12iu-fill" data-item-order="0" transform="translate(447, 147)"></g>
+            <g id="g-root-tx__1q9hmhl18fn2mh-fill" data-item-order="0" transform="translate(543, 159)">
+                <g id="tx__1q9hmhl18fn2mh-fill" stroke="none" fill="#484848">
+                    <g>
+                        <text style="font: 15px &quot;Roboto&quot;, sans-serif; white-space: pre;" font-size="15px"
+                              font-family="'Roboto', sans-serif">
+                            <tspan x="12" y="32" dominant-baseline="ideographic">Tool for effective edit, </tspan>
+                            <tspan x="12" y="50" dominant-baseline="ideographic">translation, and review</tspan>
+                            <tspan x="12" y="68" dominant-baseline="ideographic">process</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-pape_1q6d92118fk9vl-fill" data-item-order="0" transform="translate(315, 231)"></g>
+            <g id="g-root-tx_osm_hwjjfd18fn1tw-fill" data-item-order="0" transform="translate(51, 339)">
+                <g id="tx_osm_hwjjfd18fn1tw-fill" stroke="none" fill="#92bd39">
+                    <g>
+                        <text style="font: bold 20px &quot;Roboto&quot;, sans-serif; white-space: pre;"
+                              font-weight="bold" font-size="20px" font-family="'Roboto', sans-serif">
+                            <tspan x="16.38" y="35" dominant-baseline="ideographic">OSM dialy</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx__18iu32x18fn1tu-fill" data-item-order="0" transform="translate(543, 339)">
+                <g id="tx__18iu32x18fn1tu-fill" stroke="none" fill="#3cc583">
+                    <g>
+                        <text style="font: bold 20px &quot;Roboto&quot;, sans-serif; white-space: pre;"
+                              font-weight="bold" font-size="20px" font-family="'Roboto', sans-serif">
+                            <tspan x="12" y="35" dominant-baseline="ideographic">blogs and news</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx__mahmah18fn21b-fill" data-item-order="0" transform="translate(27, 375)">
+                <g id="tx__mahmah18fn21b-fill" stroke="none" fill="#484848">
+                    <g>
+                        <text style="font: 15px &quot;Roboto&quot;, sans-serif; white-space: pre;" font-size="15px"
+                              font-family="'Roboto', sans-serif">
+                            <tspan x="14" y="32" dominant-baseline="ideographic">Personal story and</tspan>
+                            <tspan x="14" y="50" dominant-baseline="ideographic">analysis from community</tspan>
+                            <tspan x="14" y="68" dominant-baseline="ideographic">mappers</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-cale_1lpx3ix18g12q5-fill" data-item-order="0" transform="translate(231, 363)"></g>
+            <g id="g-root-acco_4myop18fk7il-fill" data-item-order="0" transform="translate(447, 363)"></g>
+            <g id="g-root-tx_osm_4ju2vt18fn18o-fill" data-item-order="0" transform="translate(543, 375)">
+                <g id="tx_osm_4ju2vt18fn18o-fill" stroke="none" fill="#484848">
+                    <g>
+                        <text style="font: 15px &quot;Roboto&quot;, sans-serif; white-space: pre;" font-size="15px"
+                              font-family="'Roboto', sans-serif">
+                            <tspan x="12" y="29" dominant-baseline="ideographic">Up-to-date resource</tspan>
+                            <tspan x="12" y="47" dominant-baseline="ideographic">for OSM activiteis</tspan>
+                        </text>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-0.cu_sy_v9vaqh18fit53-stroke" data-item-order="-102605"
+               transform="translate(244.00006103515625, 158.99969482421875)">
+                <g id="0.cu_sy_v9vaqh18fit53-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 69.52 26.333C 87.2784 15.9502 107.9443 10 130 10C 151.2327 10 171.1774 15.5145 188.4801 25.1894M 234.2453 70.5201C 244.2704 88.0525 250 108.3571 250 130C 250 151.6431 244.2703 171.948 234.2449 189.4805M 188.4805 234.8104C 171.1778 244.4854 151.2329 250 130 250C 107.9443 250 87.2784 244.0497 69.5199 233.6669M 25.7551 189.4805C 15.7297 171.948 10 151.6431 10 130C 10 108.3571 15.7296 88.0524 25.7548 70.52"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-4.cu_sy_qu1sm118fitxc-stroke" data-item-order="-102601"
+               transform="translate(207.51995849609375, 123.51995849609375)">
+                <g id="4.cu_sy_qu1sm118fitxc-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 58.0004 106C 45.716 106.0001 33.4316 101.3138 24.0589 91.9411C 5.3137 73.196 5.3137 42.804 24.0589 24.0589C 42.804 5.3137 73.196 5.3137 91.9411 24.0589C 101.3137 33.4315 106 45.7157 106 58L 106.0004 106L 58.0114 106C 58.0077 106 58.0041 106 58.0004 106Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-3.cu_sy_dila8p18fivi9-stroke" data-item-order="-102597"
+               transform="translate(207.51995849609375, 338.47991943359375)">
+                <g id="3.cu_sy_dila8p18fivi9-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 106 58C 106.0001 70.2844 101.3138 82.5688 91.9411 91.9415C 73.196 110.6867 42.804 110.6867 24.0589 91.9415C 5.3137 73.1964 5.3137 42.8044 24.0589 24.0593C 33.4315 14.6867 45.7157 10.0004 58 10.0004L 106 10L 106 57.989C 106 57.9927 106 57.9963 106 58Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-2.cu_sy_4nkr2x18fit56-stroke" data-item-order="-102593"
+               transform="translate(422.48052978515625, 338.48016357421875)">
+                <g id="2.cu_sy_4nkr2x18fit56-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 10 58C 9.9999 70.2844 14.6862 82.5688 24.0589 91.9415C 42.804 110.6867 73.1959 110.6867 91.9411 91.9415C 110.6863 73.1964 110.6863 42.8044 91.9411 24.0593C 82.5685 14.6867 70.2843 10.0004 58 10.0004L 10 10L 10 57.989C 10 57.9927 10 57.9963 10 58Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-1.cu_sy_7r8yh18fitxf-stroke" data-item-order="-102589"
+               transform="translate(422.47979736328125, 123.52020263671875)">
+                <g id="1.cu_sy_7r8yh18fitxf-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 58 106C 70.2844 106.0001 82.5688 101.3138 91.9415 91.9411C 110.6867 73.196 110.6867 42.804 91.9415 24.0589C 73.1964 5.3137 42.8044 5.3137 24.0593 24.0589C 14.6867 33.4315 10.0004 45.7157 10.0004 58L 10 106L 57.989 106C 57.9927 106 57.9963 106 58 106Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx_osm_1qd8aop18fiuj0-stroke" data-item-order="0" transform="translate(250, 39)"></g>
+            <g id="g-root-tx__zn72u118fn2mj-stroke" data-item-order="0" transform="translate(15, 99)"></g>
+            <g id="g-root-tx_osmbc_4lpi5518fn091-stroke" data-item-order="0" transform="translate(543, 123)"></g>
+            <g id="g-root-tx__1cws5y118fn219-stroke" data-item-order="0" transform="translate(27, 159)"></g>
+            <g id="g-root-male_zqxr1518fiuj1-stroke" data-item-order="0" transform="translate(231, 147)">
+                <g id="male_zqxr1518fiuj1-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 32 47L 17 47C 13.686292 47 11 44.313709 11 41L 11 17C 11 13.686292 13.686292 11 17 11L 41 11C 44.313709 11 47 13.686292 47 17L 47 27M 57 44.734001L 47.026001 33L 37.054001 44.734001L 42.493999 44.734001L 42.493999 57L 51.560001 57L 51.560001 44.734001L 57 44.734001ZM 37.056 35.073997C 34.495476 31.592314 29.987991 30.149529 25.881641 31.497238C 21.775293 32.844948 18.999393 36.678146 19 41L 33.049999 41M 23.83 18.954C 25.707212 20.900848 28.295534 22.000435 31 22C 32.356857 22.000391 33.699539 21.724096 34.945999 21.188M 23 22C 23 25.313709 25.686291 28 29 28C 32.313709 28 35 25.313709 35 22C 35 18.686291 32.313709 16 29 16C 25.686291 16 23 18.686291 23 22"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-vert_18egobd18g12iu-stroke" data-item-order="0" transform="translate(447, 147)">
+                <g id="vert_18egobd18g12iu-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 18.571428 52.857143L 18.571428 15.142858C 18.571428 15.142858 18.571428 11.714286 22 11.714286L 46 11.714286C 46 11.714286 49.428574 11.714286 49.428574 15.142858L 49.428574 52.857143C 49.428574 52.857143 49.428574 56.285713 46 56.285713L 22 56.285713C 22 56.285713 18.571428 56.285713 18.571428 52.857143M 27.142857 20.285715L 40.857143 20.285715"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx__1q9hmhl18fn2mh-stroke" data-item-order="0" transform="translate(543, 159)"></g>
+            <g id="g-root-pape_1q6d92118fk9vl-stroke" data-item-order="0" transform="translate(315, 231)">
+                <g id="pape_1q6d92118fk9vl-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 102.571426 40.857143L 102.571426 85.428574C 102.571426 90.162445 98.733871 94 94 94L 94 94C 89.266136 94 85.428574 90.162445 85.428574 85.428574L 85.428574 85.428574L 85.428574 25.428572C 85.428574 23.535025 83.893547 22 82 22L 16.857143 22C 14.963595 22 13.428572 23.535025 13.428572 25.428572L 13.428572 87.14286C 13.428572 90.929955 16.498619 94 20.285715 94L 94 94M 34 39.142857L 64.857147 39.142857L 64.857147 56.285713L 34 56.285713ZM 34 76.857147L 64.857147 76.857147"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx_osm_hwjjfd18fn1tw-stroke" data-item-order="0" transform="translate(51, 339)"></g>
+            <g id="g-root-tx__18iu32x18fn1tu-stroke" data-item-order="0" transform="translate(543, 339)"></g>
+            <g id="g-root-tx__mahmah18fn21b-stroke" data-item-order="0" transform="translate(27, 375)"></g>
+            <g id="g-root-cale_1lpx3ix18g12q5-stroke" data-item-order="0" transform="translate(231, 363)">
+                <g id="cale_1lpx3ix18g12q5-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 22 11L 22 21M 34 11L 34 21M 46 11L 46 21M 50 15L 54 15C 55.104568 15 56 15.895431 56 17L 56 55C 56 56.104568 55.104568 57 54 57L 14 57C 12.895431 57 12 56.104568 12 55L 12 17C 12 15.895431 12.895431 15 14 15L 17.938 15M 18 25L 18 50C 18 50.552284 18.447716 51 19 51L 49 51C 49.552284 51 50 50.552284 50 50L 50 25M 25.938 15L 34 15M 38 15L 46 15"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-acco_4myop18fk7il-stroke" data-item-order="0" transform="translate(447, 363)">
+                <g id="acco_4myop18fk7il-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                   stroke-miterlimit="4" stroke="#484848" stroke-width="2">
+                    <g>
+                        <path d="M 15 11L 53 11C 53 11 57 11 57 15L 57 53C 57 53 57 57 53 57L 15 57C 15 57 11 57 11 53L 11 15C 11 15 11 11 15 11M 11 21L 57 21M 38 27L 50 27C 50 27 51 27 51 28L 51 36C 51 36 51 37 50 37L 38 37C 38 37 37 37 37 36L 37 28C 37 28 37 27 38 27M 38 41L 50 41C 50 41 51 41 51 42L 51 50C 51 50 51 51 50 51L 38 51C 38 51 37 51 37 50L 37 42C 37 42 37 41 38 41M 18 27L 30 27C 30 27 31 27 31 28L 31 42C 31 42 31 43 30 43L 18 43C 18 43 17 43 17 42L 17 28C 17 28 17 27 18 27M 21 34C 21 35.656853 22.343147 37 24 37C 25.656855 37 27 35.656853 27 34C 27 32.343147 25.656855 31 24 31C 22.343147 31 21 32.343147 21 34M 19 43C 18.749329 39.970428 20.974888 37.299755 24 37C 27.025112 37.299755 29.250671 39.970428 29 43M 18 47L 26 47M 18 51L 26 51M 18 15.5C 18.276142 15.5 18.5 15.723858 18.5 16C 18.5 16.276142 18.276142 16.5 18 16.5C 17.723858 16.5 17.5 16.276142 17.5 16C 17.5 15.723858 17.723858 15.5 18 15.5M 24 15.5C 24.276142 15.5 24.5 15.723858 24.5 16C 24.5 16.276142 24.276142 16.5 24 16.5C 23.723858 16.5 23.5 16.276142 23.5 16C 23.5 15.723858 23.723858 15.5 24 15.5M 30 15.5C 30.276142 15.5 30.5 15.723858 30.5 16C 30.5 16.276142 30.276142 16.5 30 16.5C 29.723858 16.5 29.5 16.276142 29.5 16C 29.5 15.723858 29.723858 15.5 30 15.5"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx_osm_4ju2vt18fn18o-stroke" data-item-order="0" transform="translate(543, 375)"></g>
+        </g>
+    </g>
+</svg>

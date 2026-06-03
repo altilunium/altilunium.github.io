@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Time Difference Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        p {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+        input[type="text"] {
+            width: calc(100% - 24px);
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 6px;
+            background-color: #ecf0f1;
+            display: none;
+            text-align: left;
+            line-height: 1.6;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Time Difference Calculator</h1>
+        <p>Type any two dates (e.g., "19 aug 2024 - 3 june 2026", "today to next Friday", or "Christmas 2025 and Halloween 2026").</p>
+        
+        <input type="text" id="dateInput" placeholder="Enter your date range here..." autocomplete="off">
+        <button id="calculateBtn">Calculate Difference</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        import * as chrono from 'https://cdn.jsdelivr.net/npm/chrono-node@2.7.7/+esm';
+
+        function calculateDifference() {
+            const input = document.getElementById('dateInput').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+
+            if (!input.trim()) {
+                resultDiv.innerHTML = '<span class="error">Please enter a date or time format.</span>';
+                return;
+            }
+
+            const parsedResults = chrono.parse(input);
+
+            if (parsedResults.length === 0) {
+                resultDiv.innerHTML = '<span class="error">Could not understand the dates. Try phrasing it differently.</span>';
+                return;
+            }
+
+            let date1, date2;
+
+            if (parsedResults[0].end) {
+                date1 = parsedResults[0].start.date();
+                date2 = parsedResults[0].end.date();
+            } 
+            else if (parsedResults.length > 1) {
+                date1 = parsedResults[0].start.date();
+                date2 = parsedResults[1].start.date();
+            } 
+            else {
+                resultDiv.innerHTML = '<span class="error">I only found one date in your input. Please provide a range (e.g., "Date A to Date B").</span>';
+                return;
+            }
+
+            if (date1 > date2) {
+                const temp = date1;
+                date1 = date2;
+                date2 = temp;
+            }
+
+            const diffMs = date2 - date1;
+            const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const totalHours = Math.floor(diffMs / (1000 * 60 * 60));
+            
+            const years = Math.floor(totalDays / 365.25);
+            const remainingDaysAfterYears = totalDays % 365.25;
+            const months = Math.floor(remainingDaysAfterYears / 30.436875);
+            const days = Math.floor(remainingDaysAfterYears % 30.436875);
+
+            let breakdownString = "Less than a day";
+            let breakdownArray = [];
+            
+            if (years > 0) breakdownArray.push(`${years} year${years !== 1 ? 's' : ''}`);
+            if (months > 0) breakdownArray.push(`${months} month${months !== 1 ? 's' : ''}`);
+            if (days > 0) breakdownArray.push(`${days} day${days !== 1 ? 's' : ''}`);
+
+            if (breakdownArray.length > 0) {
+                breakdownString = breakdownArray.join(', ');
+            }
+
+            resultDiv.innerHTML = `
+                <strong>From:</strong> ${date1.toLocaleString()}<br>
+                <strong>To:</strong> ${date2.toLocaleString()}<br>
+                <hr style="border: 0; border-top: 1px solid #ccc; margin: 15px 0;">
+                <strong>Difference:</strong><br>
+                ${breakdownString}<br>
+                <br>
+                <em>Or exactly:</em><br>
+                ${totalDays.toLocaleString()} total days<br>
+                ${totalHours.toLocaleString()} total hours
+            `;
+        }
+
+        // Attach event listeners after the module loads
+        document.getElementById('calculateBtn').addEventListener('click', calculateDifference);
+        
+        document.getElementById('dateInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                calculateDifference();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikitext Reference Converter</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --bg-color: #f8f9fa;
+            --box-bg: #ffffff;
+            --text: #333333;
+            --border: #dee2e6;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: var(--box-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-align: center;
+        }
+        p.desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .example-box {
+            background: #eef2f5;
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+        .example-box code {
+            display: block;
+            margin-top: 0.25rem;
+            color: #c0392b;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Wikitext Reference Format Converter</h1>
+        <p class="desc">Converts raw text references into the standard <code>{{Cite web}}</code> wikitext template.</p>
+
+        <div class="example-box">
+            <strong>Input Example:</strong>
+            <code>&lt;ref&gt;Firstname Lastname (28 Maret 2026) "[https://sample.url Title]" Publisher&lt;/ref&gt;</code>
+        </div>
+
+        <div class="form-group">
+            <label for="inputRef">Input Ref:</label>
+            <textarea id="inputRef" placeholder="Paste your raw <ref> tag here..."></textarea>
+        </div>
+
+        <button onclick="convertRef()">Convert to {{Cite web}}</button>
+
+        <div class="form-group" style="margin-top: 1.5rem;">
+            <label for="outputRef">Output:</label>
+            <textarea id="outputRef" readonly placeholder="Output will appear here..."></textarea>
+        </div>
+    </div>
+
+    <script>
+        function convertRef() {
+            const input = document.getElementById('inputRef').value.trim();
+            
+            // Regex to parse the components from the input string
+            // Group 1: Author | Group 2: Date | Group 3: URL | Group 4: Title | Group 5: Publisher
+            const regex = /<ref>([\s\S]*?)\s*\((.*?)\)\s*"\[(\S+)\s+(.*?)\]"\s*([\s\S]*?)<\/ref>/i;
+            const match = input.match(regex);
+
+            if (!match) {
+                document.getElementById('outputRef').value = "Error: Input format not recognized. Please ensure it matches the example format.";
+                return;
+            }
+
+            const authorFull = match[1].trim();
+            const date = match[2].trim();
+            const url = match[3].trim();
+            const title = match[4].trim();
+            const publisher = match[5].trim()
+
+            // Parse Author (split into first and last name)
+            let first = "";
+            let last = "";
+            const nameParts = authorFull.split(' ');
+            if (nameParts.length > 1) {
+                last = nameParts.pop(); // The last word becomes 'last'
+                first = nameParts.join(' '); // Everything else is 'first'
+            } else {
+                last = authorFull; // Single name goes to last
+            }
+
+            // Extract the domain for the website parameter
+            let website = "";
+            try {
+                const parsedUrl = new URL(url);
+                website = parsedUrl.hostname.replace(/^www\./, '');
+            } catch (e) {
+                console.error("Invalid URL format");
+            }
+
+            // Get today's date formatted in Indonesian locale (e.g., "30 Maret 2026")
+            const today = new Intl.DateTimeFormat('id-ID', {
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric'
+            }).format(new Date());
+
+            // Construct the final Wikipedia template
+            let output = `<ref>{{Cite web`;
+            if (first) output += `|first=${first}`;
+            if (last) output += `|last=${last}`;
+            output += `|title=${title}`;
+            output += `|url=${url}`;
+            if (website) output += `|website=${website}`;
+            output += `|language=id`;
+            output += `|access-date=${today}`;
+            output += `|date=${date}`;
+            output += `|publisher=${publisher}`;
+            output += `}}</ref>`;
+
+            document.getElementById('outputRef').value = output;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altilunium Chronoo</title>
+    <link rel="icon" href="icon-192.png">
+    <script src="dexie.min.js"></script>
+    <link rel="stylesheet" href="cropper.min.css">
+    <script src="cropper.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    
+    <style>
+        :root {
+            --bg: #121212; --surface: #1e1e1e; --border: #333;
+            --text: #e0e0e0; --text-muted: #888; --accent: #1da1f2;
+            --danger: #f44336; --radius: 4px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.4; }
+        
+        .container { max-width: 600px; margin: 0 auto; border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Composer & Reply Box */
+        .composer, .inline-reply { padding: 8px; border-bottom: 1px solid var(--border); background: var(--surface); }
+        textarea { width: 100%; background: transparent; border: none; color: var(--text); resize: none; outline: none; min-height: 50px; font-size: 14px; }
+        .composer-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+        
+        button { background: var(--accent); color: white; border: none; padding: 4px 10px; border-radius: var(--radius); font-weight: bold; cursor: pointer; }
+        .action-btn { background: transparent; color: var(--text-muted); padding: 2px 6px; border: 1px solid var(--border); font-weight: normal; font-size: 11px; }
+
+        /* Calendar Navigator (Month & Year) */
+        .calendar-section { display: none; padding: 8px; border-bottom: 1px solid var(--border); background: var(--surface); }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-top: 8px; }
+        .year-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 8px; }
+        .cal-day, .year-month { aspect-ratio: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); font-size: 11px; cursor: pointer; border-radius: 2px; }
+        .year-month { aspect-ratio: 2; font-size: 12px; font-weight: bold; }
+        .cal-day:hover, .year-month:hover { background: rgba(29, 161, 242, 0.2); }
+        .cal-count { width: 30%; height: 3px; border-radius: 1px; margin-top: 2px; background: var(--accent); }
+
+        /* Staging Area */
+        .staging-area { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
+        .staging-img-container { position: relative; width: 45px; height: 45px; }
+        .staging-img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+        .remove-img { position: absolute; top: -2px; right: -2px; background: var(--danger); color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 10px; text-align: center; line-height: 14px; cursor: pointer; }
+
+        /* Feed */
+        .tweet { padding: 10px 8px; border-bottom: 1px solid var(--border); }
+        .tweet-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 4px; margin-top: 6px; }
+        .tweet-images img { width: 100%; height: 110px; object-fit: cover; border-radius: var(--radius); cursor: pointer; }
+        .qrt-box { margin-top: 8px; border: 1px solid var(--border); border-radius: var(--radius); background: rgba(255,255,255,0.03); padding: 8px; }
+        .qrt-box .qrt-header { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
+        .qrt-box .qrt-text { font-size: 13px; white-space: pre-wrap; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; }
+        .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; }
+        .lightbox img { max-width: 95%; max-height: 95%; object-fit: contain; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="threadHeader" style="display:none; padding:8px; background:var(--surface); border-bottom:1px solid var(--border); font-weight:bold;">
+        <button class="action-btn" onclick="exitThreadView()">← Back</button> Thread
+    </div>
+
+    <div id="mainUI">
+        <div class="toolbar" style="padding:8px; display:flex; gap:4px; border-bottom:1px solid var(--border);">
+            <input type="text" id="searchInput" placeholder="Search..." style="flex:1; background:var(--surface); border:1px solid var(--border); color:white; padding:4px;">
+            <button id="clearSearchBtn" onclick="clearSearch()" style="display:none;">❌</button>
+            <button id="toggleCalendarBtn">📅 Stats</button>
+        </div>
+
+        <div id="calendarSection" class="calendar-section">
+            <div style="display:flex; justify-content: space-between; align-items:center;">
+                <button onclick="changeCalPeriod(-1)" class="action-btn">&lt;</button>
+                <span id="calLabel" style="font-weight:bold; cursor:pointer;" onclick="toggleYearView()"></span>
+                <button onclick="changeCalPeriod(1)" class="action-btn">&gt;</button>
+            </div>
+            <div id="calendarGrid" class="cal-grid"></div>
+            <div id="yearGrid" class="year-grid" style="display:none;"></div>
+        </div>
+
+        <div class="composer">
+            <textarea id="tweetText" placeholder="What's happening?"></textarea>
+            <div id="staging-main" class="staging-area"></div>
+            <div class="composer-actions">
+                <button class="action-btn" onclick="triggerImageInput('main')">📷 Image</button>
+                <button id="postBtn">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="feed"></div>
+    <div id="threadFeed" style="display:none;"></div>
+</div>
+
+<input type="file" id="globalImageInput" accept="image/*" style="display:none;">
+<div id="cropperModal" class="modal">
+    <div style="flex:1; min-height:0;"><img id="cropperImage" src="" style="max-width:100%"></div>
+    <div style="padding:8px; display:flex; justify-content:flex-end; gap:4px; background:var(--surface)">
+        <button onclick="closeCropper()" style="background:var(--border)">Cancel</button>
+        <button id="applyCropBtn">Crop</button>
+    </div>
+</div>
+<div id="lightbox" class="lightbox" onclick="this.style.display='none'"><img id="lightboxImg"></div>
+
+<script>
+    const db = new Dexie("LocalMicroblogDB");
+    db.version(2).stores({ tweets: '++id, timestamp, dateString, text, parentId' });
+
+    let activeStagingTarget = 'main'; 
+    const stagedData = { 'main': [] };
+    let feedLimit = 10;
+    let currentQuery = '';
+    let threadRootId = null;
+    let cropper = null;
+    let calDate = new Date();
+    let isYearView = false;
+
+    // --- Image Handling ---
+    function triggerImageInput(target) {
+        activeStagingTarget = String(target);
+        if (!stagedData[activeStagingTarget]) stagedData[activeStagingTarget] = [];
+        if (stagedData[activeStagingTarget].length >= 4) return alert("Max 4 images.");
+        document.getElementById('globalImageInput').click();
+    }
+
+    document.getElementById('globalImageInput').onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            document.getElementById('cropperImage').src = ev.target.result;
+            document.getElementById('cropperModal').style.display = 'flex';
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(document.getElementById('cropperImage'), { viewMode: 1, autoCropArea: 1, background: false });
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    };
+
+    function closeCropper() { document.getElementById('cropperModal').style.display='none'; if(cropper) cropper.destroy(); }
+
+    document.getElementById('applyCropBtn').onclick = () => {
+        const b64 = cropper.getCroppedCanvas().toDataURL('image/jpeg', 0.8);
+        stagedData[activeStagingTarget].push(b64);
+        renderStaging(activeStagingTarget);
+        closeCropper();
+        document.getElementById('globalImageInput').value = '';
+    };
+
+    function renderStaging(target) {
+        const containerId = target === 'main' ? 'staging-main' : `staging-${target}`;
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        el.innerHTML = stagedData[target].map((src, i) => `
+            <div class="staging-img-container">
+                <img src="${src}" class="staging-img">
+                <div class="remove-img" onclick="stagedData['${target}'].splice(${i},1);renderStaging('${target}')">×</div>
+            </div>
+        `).join('');
+    }
+
+    // --- Tweet Logic ---
+    async function postTweet(inputId, parentId = null) {
+        const text = document.getElementById(inputId).value.trim();
+        const targetKey = parentId ? String(parentId) : 'main';
+        const images = stagedData[targetKey] || [];
+        
+        if (!text && images.length === 0) return;
+
+        await db.tweets.add({
+            text, images: [...images],
+            timestamp: Date.now(),
+            dateString: new Date().toLocaleDateString('en-CA'),
+            parentId
+        });
+
+        document.getElementById(inputId).value = '';
+        stagedData[targetKey] = [];
+        renderStaging(targetKey);
+
+        if (threadRootId && parentId === threadRootId) {
+            await openThreadView(threadRootId);
+        } else {
+            triggerSearch(true);
+        }
+    }
+
+    // --- Edit Logic ---
+    window.toggleEdit = async (id, context = '') => {
+        const prefix = context ? `${context}-` : '';
+        const editAreaId = `${prefix}edit-area-${id}`;
+        const inputId = `${prefix}edit-input-${id}`;
+        const replyAreaId = `${prefix}reply-area-${id}`;
+        
+        const el = document.getElementById(editAreaId);
+        if (!el) return;
+        
+        const t = await db.tweets.get(id);
+        if (el.style.display === 'none' || !el.style.display) {
+            document.getElementById(inputId).value = t.text;
+            el.style.display = 'block';
+            const replyEl = document.getElementById(replyAreaId);
+            if (replyEl) replyEl.style.display = 'none'; // hide reply area if open
+        } else {
+            el.style.display = 'none';
+        }
+    };
+
+    window.saveEdit = async (id, context = '') => {
+        const prefix = context ? `${context}-` : '';
+        const inputId = `${prefix}edit-input-${id}`;
+        const newText = document.getElementById(inputId).value.trim();
+        
+        // Dexie's .update() only modifies specific fields, meaning timestamp stays exactly the same
+        await db.tweets.update(id, { text: newText }); 
+        
+        if (document.getElementById('threadHeader').style.display === 'block' && threadRootId) {
+            openThreadView(threadRootId);
+        } else {
+            triggerSearch(false);
+        }
+    };
+
+    // --- Feed Rendering ---
+    async function triggerSearch(reset = false) {
+        threadRootId = null;
+        document.getElementById('threadHeader').style.display = 'none';
+        document.getElementById('threadFeed').style.display = 'none';
+        document.getElementById('mainUI').style.display = 'block';
+        document.getElementById('feed').style.display = 'block';
+
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        if (reset || currentQuery !== q) { feedLimit = 10; }
+        currentQuery = q;
+
+        let all = await db.tweets.orderBy('timestamp').reverse().toArray();
+        
+        let sinceDate = null, untilDate = null;
+        const sinceMatch = q.match(/since:(\d{4}-\d{2}-\d{2})/);
+        const untilMatch = q.match(/until:(\d{4}-\d{2}-\d{2})/);
+        if (sinceMatch) sinceDate = sinceMatch[1];
+        if (untilMatch) untilDate = untilMatch[1];
+        
+        const results = all.filter(t => {
+            const textMatch = t.text.toLowerCase().includes(q.replace(/since:[^ ]+\s*/g, '').replace(/until:[^ ]+\s*/g, '').trim());
+            if (!textMatch) return false;
+            
+            if (sinceDate && t.dateString < sinceDate) return false;
+            if (untilDate && t.dateString > untilDate) return false;
+            return true;
+        });
+
+        const feed = document.getElementById('feed');
+        feed.innerHTML = '';
+
+        for (const t of results.slice(0, feedLimit)) {
+            feed.appendChild(await createNode(t));
+        }
+
+        if (results.length > feedLimit) {
+            const btn = document.createElement('button');
+            btn.textContent = 'Load more';
+            btn.style.margin = '8px';
+            btn.onclick = () => { feedLimit += 10; triggerSearch(false); };
+            feed.appendChild(btn);
+        }
+    }
+
+    async function renderTweetTextWithQRT(t) {
+        const base = t.text || '';
+        const qrtMatch = base.match(/tweet:#(\d+)/i);
+        let text = base;
+        let qrtHTML = '';
+
+        if (qrtMatch) {
+            const qId = Number(qrtMatch[1]);
+            const refTweet = await db.tweets.get(qId);
+            text = base.replace(/tweet:#\d+/i, '').trim();
+
+            if (refTweet) {
+                const refImages = (refTweet.images || []).map(img => `<img src="${img}" onclick="showLightbox('${img}')">`).join('');
+                qrtHTML = `
+                    <div class="qrt-box" onclick="openThreadView(${qId})">
+                        <div class="qrt-header">QRT tweet:#${qId} • ${new Date(refTweet.timestamp).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                        <div class="qrt-text">${refTweet.text || ''}</div>
+                        <div class="tweet-images">${refImages}</div>
+                    </div>
+                `;
+            } else {
+                qrtHTML = `<div class="qrt-box"><div class="qrt-header">QRT tweet:#${qId} not found</div></div>`;
+            }
+        }
+
+        return `<div style="font-size:14px; white-space:pre-wrap;">${text}</div>${qrtHTML}`;
+    }
+
+    async function createNode(t, isQRT = false) {
+        const el = document.createElement('div');
+        el.className = 'tweet';
+        const tweetContent = await renderTweetTextWithQRT(t);
+        el.innerHTML = `
+            <div style="font-size:10px; color:var(--text-muted); margin-bottom:4px;">#${t.id} • ${new Date(t.timestamp).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+            <div onclick="openThreadView(${t.id})" style="cursor:pointer;">${tweetContent}</div>
+            <div class="tweet-images">${(t.images || []).map(img => `<img src="${img}" onclick="showLightbox('${img}')">`).join('')}</div>
+            ${!isQRT ? `
+                <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+                    <button class="action-btn" onclick="toggleReply(${t.id})">💬 Reply</button>
+                    <button class="action-btn" onclick="navigator.clipboard.writeText('tweet:#'+${t.id})">🔗 Link</button>
+                    <button class="action-btn" onclick="toggleEdit(${t.id})">✏️ Edit</button>
+                    <button class="action-btn" style="color:var(--danger)" onclick="deleteTweet(${t.id})">Delete</button>
+                    <button class="action-btn" onclick="openThreadView(${t.id})">🧵 Thread</button>
+                </div>
+                
+                <div id="edit-area-${t.id}" style="display:none; margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+                    <textarea id="edit-input-${t.id}" placeholder="Edit your tweet..."></textarea>
+                    <div style="display:flex; justify-content:flex-end; gap:4px; margin-top:4px;">
+                        <button class="action-btn" onclick="toggleEdit(${t.id})">Cancel</button>
+                        <button onclick="saveEdit(${t.id})">Save</button>
+                    </div>
+                </div>
+
+                <div id="reply-area-${t.id}" style="display:none; margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+                    <textarea id="input-${t.id}" placeholder="Reply..."></textarea>
+                    <div id="staging-${t.id}" class="staging-area"></div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <button class="action-btn" onclick="triggerImageInput('${t.id}')">📷 Image</button>
+                        <button onclick="postTweet('input-${t.id}', ${t.id})">Send</button>
+                    </div>
+                </div>
+            ` : ''}
+        `;
+        return el;
+    }
+
+    async function createThreadNode(t, depth = 0) {
+        const el = document.createElement('div');
+        el.className = 'tweet';
+        el.style.marginLeft = `${depth * 14}px`;
+        const tweetContent = await renderTweetTextWithQRT(t);
+        el.innerHTML = `
+            <div style="font-size:10px; color:var(--text-muted); margin-bottom:4px;">#${t.id} • ${new Date(t.timestamp).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+            <div style="font-size:14px;">${tweetContent}</div>
+            <div class="tweet-images">${(t.images || []).map(img => `<img src="${img}" onclick="showLightbox('${img}')">`).join('')}</div>
+            <div style="margin-top:8px; display:flex; gap:6px;">
+                <button class="action-btn" onclick="toggleEdit(${t.id}, 'thread')">✏️ Edit</button>
+            </div>
+            
+            <div id="thread-edit-area-${t.id}" style="display:none; margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+                <textarea id="thread-edit-input-${t.id}" placeholder="Edit your tweet..."></textarea>
+                <div style="display:flex; justify-content:flex-end; gap:4px; margin-top:4px;">
+                    <button class="action-btn" onclick="toggleEdit(${t.id}, 'thread')">Cancel</button>
+                    <button onclick="saveEdit(${t.id}, 'thread')">Save</button>
+                </div>
+            </div>
+        `;
+        return el;
+    }
+
+    window.openThreadView = async (tweetId) => {
+        let currentTweet = await db.tweets.get(tweetId);
+        if (!currentTweet) return;
+        
+        while (currentTweet.parentId) {
+            const parent = await db.tweets.get(currentTweet.parentId);
+            if (!parent) break;
+            currentTweet = parent;
+        }
+        
+        const rootTweet = currentTweet;
+        threadRootId = rootTweet.id;
+
+        document.getElementById('mainUI').style.display = 'none';
+        document.getElementById('threadHeader').style.display = 'block';
+        document.getElementById('feed').style.display = 'none';
+        const threadFeed = document.getElementById('threadFeed');
+        threadFeed.style.display = 'block';
+        threadFeed.innerHTML = '';
+
+        const threadItems = [];
+        async function gather(item, depth) {
+            threadItems.push({ item, depth });
+            const replies = await db.tweets.where('parentId').equals(item.id).sortBy('timestamp');
+            for (const r of replies) await gather(r, depth + 1);
+        }
+        await gather(rootTweet, 0);
+
+        for (const node of threadItems) {
+            threadFeed.appendChild(await createThreadNode(node.item, node.depth));
+        }
+
+        const composer = document.createElement('div');
+        composer.className = 'composer';
+        composer.style.marginTop = '8px';
+        composer.innerHTML = `
+            <textarea id="threadReplyText" placeholder="Reply to topmost tweet..."></textarea>
+            <div id="staging-${threadRootId}" class="staging-area"></div>
+            <div class="composer-actions">
+                <button class="action-btn" onclick="triggerImageInput('${threadRootId}')">📷 Image</button>
+                <button onclick="postTweet('threadReplyText', ${threadRootId})">Reply</button>
+            </div>
+        `;
+        threadFeed.appendChild(composer);
+        stagedData[String(threadRootId)] = stagedData[String(threadRootId)] || [];
+        renderStaging(String(threadRootId));
+    };
+
+    window.exitThreadView = () => {
+        threadRootId = null;
+        document.getElementById('threadHeader').style.display = 'none';
+        document.getElementById('threadFeed').style.display = 'none';
+        document.getElementById('mainUI').style.display = 'block';
+        document.getElementById('feed').style.display = 'block';
+        triggerSearch(true);
+    };
+
+    window.toggleReply = (id) => {
+        const el = document.getElementById(`reply-area-${id}`);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        const editEl = document.getElementById(`edit-area-${id}`);
+        if (editEl) editEl.style.display = 'none'; // hide edit if open
+    };
+
+    // Track lightbox images and current index
+    let lightboxImages = [];
+    let currentLightboxIndex = 0;
+    
+    window.showLightbox = (src) => {
+        lightboxImages = Array.from(document.querySelectorAll('.tweet-images img')).map(img => img.src);
+        currentLightboxIndex = lightboxImages.indexOf(src);
+        if (currentLightboxIndex === -1) { lightboxImages = [src]; currentLightboxIndex = 0; }
+        
+        updateLightbox();
+        document.getElementById('lightbox').style.display = 'flex';
+    };
+    
+    function updateLightbox() {
+        const lightbox = document.getElementById('lightbox');
+        if (lightboxImages.length === 0) return;
+        const hasMultiple = lightboxImages.length > 1;
+        lightbox.innerHTML = `
+            <div style="position:relative; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">
+                ${hasMultiple ? `<button onclick="prevLightboxImage()" style="position:absolute; left:20px; background:rgba(255,255,255,0.3); color:white; border:none; padding:12px 16px; cursor:pointer; font-size:22px; border-radius:4px; z-index:10;">❮</button>` : ''}
+                <img id="lightboxImg" src="${lightboxImages[currentLightboxIndex]}" style="max-width: 95%; max-height: 95%; object-fit: contain;">
+                ${hasMultiple ? `<button onclick="nextLightboxImage()" style="position:absolute; right:20px; background:rgba(255,255,255,0.3); color:white; border:none; padding:12px 16px; cursor:pointer; font-size:22px; border-radius:4px; z-index:10;">❯</button>` : ''}
+                ${hasMultiple ? `<div style="position:absolute; bottom:20px; color:white; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:4px;">${currentLightboxIndex + 1}/${lightboxImages.length}</div>` : ''}
+            </div>
+        `;
+    }
+    
+    window.nextLightboxImage = () => {
+        currentLightboxIndex = (currentLightboxIndex + 1) % lightboxImages.length;
+        updateLightbox();
+    };
+    
+    window.prevLightboxImage = () => {
+        currentLightboxIndex = (currentLightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+        updateLightbox();
+    };
+    
+    document.addEventListener('keydown', (e) => {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox.style.display === 'flex') {
+            if (e.key === 'ArrowRight') nextLightboxImage();
+            if (e.key === 'ArrowLeft') prevLightboxImage();
+            if (e.key === 'Escape') lightbox.style.display = 'none';
+        }
+    });
+    
+    let touchStartX = 0;
+    document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, false);
+    document.addEventListener('touchend', (e) => {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox.style.display !== 'flex') return;
+        const touchEndX = e.changedTouches[0].clientX;
+        if (touchStartX - touchEndX > 50) nextLightboxImage();
+        if (touchEndX - touchStartX > 50) prevLightboxImage();
+    }, false);
+
+    window.deleteTweet = async (id) => {
+        if (confirm("Delete?")) {
+            await db.tweets.delete(id);
+            triggerSearch(true);
+        }
+    };
+
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('clearSearchBtn').style.display = 'none';
+        triggerSearch(true);
+    }
+
+    // --- Calendar Navigator ---
+    document.getElementById('toggleCalendarBtn').onclick = () => {
+        const s = document.getElementById('calendarSection');
+        s.style.display = s.style.display === 'none' ? 'block' : 'none';
+        renderCalendar();
+    };
+
+    function toggleYearView() {
+        isYearView = !isYearView;
+        renderCalendar();
+    }
+
+    function changeCalPeriod(dir) {
+        if (isYearView) calDate.setFullYear(calDate.getFullYear() + dir);
+        else calDate.setMonth(calDate.getMonth() + dir);
+        renderCalendar();
+    }
+
+    async function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        const yGrid = document.getElementById('yearGrid');
+        const label = document.getElementById('calLabel');
+
+        if (isYearView) {
+            grid.style.display = 'none';
+            yGrid.style.display = 'grid';
+            yGrid.innerHTML = '';
+            label.textContent = calDate.getFullYear();
+            
+            for (let m = 0; m < 12; m++) {
+                const mName = new Date(0, m).toLocaleString('default', { month: 'short' });
+                const div = document.createElement('div');
+                div.className = 'year-month';
+                div.textContent = mName;
+                div.onclick = () => { calDate.setMonth(m); isYearView = false; renderCalendar(); };
+                yGrid.appendChild(div);
+            }
+        } else {
+            grid.style.display = 'grid';
+            yGrid.style.display = 'none';
+            grid.innerHTML = '';
+            label.textContent = calDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+            // Add day headers
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            for (const day of dayNames) {
+                const header = document.createElement('div');
+                header.className = 'cal-day';
+                header.style.fontWeight = 'bold';
+                header.style.fontSize = '10px';
+                header.textContent = day;
+                grid.appendChild(header);
+            }
+
+            const firstDay = new Date(calDate.getFullYear(), calDate.getMonth(), 1).getDay();
+            const days = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 0).getDate();
+
+            // Add empty cells for days before the 1st
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'cal-day';
+                grid.appendChild(empty);
+            }
+
+            for (let d = 1; d <= days; d++) {
+                const ds = `${calDate.getFullYear()}-${String(calDate.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const count = await db.tweets.where('dateString').equals(ds).count();
+                const box = document.createElement('div');
+                box.className = 'cal-day';
+                box.innerHTML = `<span>${d}</span>`;
+                if (count > 0) box.innerHTML += `<div class="cal-count"></div>`;
+                box.onclick = () => { 
+                    document.getElementById('searchInput').value = `since:${ds} until:${ds}`; 
+                    document.getElementById('clearSearchBtn').style.display = 'block';
+                    document.getElementById('calendarSection').style.display = 'none';
+                    triggerSearch(); 
+                };
+                grid.appendChild(box);
+            }
+        }
+    }
+
+    function setupPasteListener(textareaId, target) {
+        const textarea = document.getElementById(textareaId);
+        if (!textarea) return;
+        textarea.addEventListener('paste', (e) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            
+            for (let item of items) {
+                if (item.type.startsWith('image/')) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        document.getElementById('cropperImage').src = ev.target.result;
+                        document.getElementById('cropperModal').style.display = 'flex';
+                        activeStagingTarget = target;
+                        if (!stagedData[activeStagingTarget]) stagedData[activeStagingTarget] = [];
+                        if (cropper) cropper.destroy();
+                        cropper = new Cropper(document.getElementById('cropperImage'), { viewMode: 1, autoCropArea: 1, background: false });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+    }
+    
+    setupPasteListener('tweetText', 'main');
+    
+    const originalOpenThreadView = window.openThreadView;
+    window.openThreadView = async (tweetId) => {
+        await originalOpenThreadView(tweetId);
+        setTimeout(() => setupPasteListener('threadReplyText', threadRootId), 100);
+    };
+    
+    const originalToggleReply = window.toggleReply;
+    window.toggleReply = (id) => {
+        originalToggleReply(id);
+        setTimeout(() => setupPasteListener(`input-${id}`, id), 100);
+    };
+
+    document.getElementById('postBtn').onclick = () => postTweet('tweetText');
+    document.getElementById('searchInput').oninput = () => {
+        triggerSearch(true);
+        const btn = document.getElementById('clearSearchBtn');
+        btn.style.display = document.getElementById('searchInput').value.trim() ? 'block' : 'none';
+    };
+    triggerSearch(true);
+
+
+    if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js");
+}
+</script>
+</body>
+</html>

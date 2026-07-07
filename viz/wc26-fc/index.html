@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World Cup Elimination Food Chain</title>
+    <title>World Cup Elimination Chain</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
@@ -45,6 +45,11 @@
             gap: 1rem;
             z-index: 10;
             box-shadow: 4px 0 15px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.hidden {
+            display: none;
         }
 
         h1 {
@@ -53,6 +58,9 @@
             background: linear-gradient(135deg, #38bdf8, #818cf8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         p.description {
@@ -64,6 +72,7 @@
         textarea {
             width: 100%;
             flex-grow: 1;
+            min-height: 120px;
             background-color: var(--bg-primary);
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -79,6 +88,53 @@
 
         textarea:focus {
             border-color: var(--accent);
+        }
+
+        .stats-container {
+            flex-shrink: 0;
+            height: 250px;
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stats-container h3 {
+            font-size: 0.9rem;
+            color: #818cf8;
+            margin-bottom: 0.2rem;
+        }
+
+        #statsList {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding-right: 5px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .stat-value.zero {
+            color: var(--text-muted);
+            font-weight: 400;
         }
 
         .button-group {
@@ -163,18 +219,18 @@
 <body>
 
     <div class="sidebar">
-        <h1>🏆 Elimination Food Chain</h1>
-        <p class="description">Solid gold arrows represent main World Cup knockouts. Dashed cyan arrows represent qualification knockouts. Use the toggle to switch between physics and hierarchical layout.</p>
+        <h1>🏆 Elimination Chain</h1>
+        <p class="description">Press <strong>Ctrl + .</strong> to toggle this sidebar. Arrow rules: Solid gold = World Cup, Dashed cyan = Qualifiers.</p>
         
-        <textarea id="dataInput">
+        <textarea id="dataInput" oninput="generateFoodChain(false)">
 Croatia : Panama - Scotland
 Spain : Uruguay - Saudi Arabia
 Brazil : Haiti - Scotland
+Austria : Jordan - Iran
 Australia : Turkiye
 Paraguay : Turkiye
 Sweden : Tunisia
 Japan : Tunisia
-Austria : Jordan
 Algeria : Jordan
 Ghana : Panama
 Canada : Qatar
@@ -193,6 +249,7 @@ Colombia : Uzbekistan
 Portugal : Uzbekistan
 Dr. Congo : Uzbekistan - South Korea
 South Africa : South Korea
+Iran : (Hong Kong - Turkmenistan - Kyrgyztan - UAE - North Korea)
 South Korea : (Singapore - China - Thailand - Palestine - Oman - Kuwait)
 Scotland : Haiti - (Denmark - Belarus - Greece)
 Uzbekistan : (Turkmenistan - Hong Kong - Kyrgyztan - UAE)
@@ -208,6 +265,11 @@ Jordan : (Tajikistan - Pakistan - Kuwait - Palestine - Oman)
 Tunisia : (Sao Tome and Principe - Malawi - Equatorial Guinea - Namibia - Liberia)
 Turkiye : (Georgia - Bulgaria - Romania - Kosovo)
 Haiti : (Saint Lucia - Barbados - Aruba - Honduras - Costa Rica - Nicaragua)</textarea>
+
+        <div class="stats-container">
+            <h3>📊 Current Possession</h3>
+            <div id="statsList"></div>
+        </div>
 
         <div class="legend">
             <div class="legend-item">
@@ -232,6 +294,14 @@ Haiti : (Saint Lucia - Barbados - Aruba - Honduras - Costa Rica - Nicaragua)</te
     </div>
 
     <script>
+        // Feature 1: Toggle Sidebar using Ctrl + .
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === '.') {
+                e.preventDefault();
+                document.querySelector('.sidebar').classList.toggle('hidden');
+            }
+        });
+
         const flagMap = {
             "afghanistan": "🇦🇫", "algeria": "🇩🇿", "aruba": "🇦🇼", "australia": "🇦🇺",
             "austria": "🇦🇹", "bahrain": "🇧🇭", "barbados": "🇧🇧", "belarus": "🇧🇾",
@@ -257,12 +327,85 @@ Haiti : (Saint Lucia - Barbados - Aruba - Honduras - Costa Rica - Nicaragua)</te
             "suriname": "🇸🇷", "sweden": "🇸🇪", "tahiti": "🇵🇫", "tajikistan": "🇹🇯",
             "trinidad and tobago": "🇹🇹", "tunisia": "🇹🇳", "turkiye": "🇹🇷", "turkmenistan": "🇹🇲",
             "uae": "🇦🇪", "united arab emirates": "🇦🇪", "uruguay": "🇺🇾", "uzbekistan": "🇺🇿",
-            "vanuatu": "🇻🇺", "venezuela": "🇻🇪", "vietnam": "🇻🇳", "south africa": "🇿🇦", "singapore" : "🇸🇬", "thailand" : "🇹🇭"
+            "vanuatu": "🇻🇺", "venezuela": "🇻🇪", "vietnam": "🇻🇳", "south africa": "🇿🇦", "singapore" : "🇸🇬", "thailand" : "🇹🇭", "iran" : "🇮🇷"
         };
 
         function getFlag(countryName) {
             const cleanName = countryName.toLowerCase().trim();
             return flagMap[cleanName] || "🏳️";
+        }
+
+        // Feature 2: Statistical Calculation Engine
+        function calculateStats(nodesMap, edges) {
+            const defeatersOf = {}; // Nations that defeated X
+            const defeatedBy = {};  // Nations that X defeated
+            
+            for (const id of nodesMap.keys()) {
+                defeatersOf[id] = new Set();
+                defeatedBy[id] = new Set();
+            }
+            
+            for (const edge of edges) {
+                defeatersOf[edge.to].add(edge.from);
+                defeatedBy[edge.from].add(edge.to);
+            }
+            
+            const memo = {};
+            // Post-order traversal to calculate accumulated sum recursively
+            function getTotal(node, visited = new Set()) {
+                if (visited.has(node)) return 1; // Basic fallback to prevent rare cyclic loops
+                if (memo[node] !== undefined) return memo[node];
+                
+                visited.add(node);
+                let val = 1; // Inherent possession base value of 1
+                for (const loser of defeatedBy[node]) {
+                    // Split the loser's full possession equally amongst all nations that defeated it
+                    val += getTotal(loser, visited) / defeatersOf[loser].size;
+                }
+                visited.delete(node);
+                
+                memo[node] = val;
+                return val;
+            }
+            
+            const currentPossession = [];
+            for (const [id, node] of nodesMap.entries()) {
+                const accumulatedTotal = getTotal(id);
+                // If a nation has been defeated, it currently holds 0. 
+                const isDefeated = defeatersOf[id].size > 0;
+                
+                currentPossession.push({
+                    name: node.label,
+                    possession: isDefeated ? 0 : accumulatedTotal
+                });
+            }
+            
+            // Sort by largest possession first, then alphabetically
+            currentPossession.sort((a, b) => b.possession - a.possession || a.name.localeCompare(b.name));
+            
+            const statsList = document.getElementById('statsList');
+            statsList.innerHTML = '';
+            
+            currentPossession.forEach(stat => {
+                const item = document.createElement('div');
+                item.className = 'stat-item';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'stat-name';
+                nameSpan.textContent = stat.name;
+                
+                const countSpan = document.createElement('span');
+                countSpan.className = 'stat-value' + (stat.possession === 0 ? ' zero' : '');
+                
+                let displayVal = stat.possession;
+                if (displayVal % 1 !== 0) displayVal = displayVal.toFixed(2); // Keep decimals clean
+                
+                countSpan.textContent = displayVal;
+                
+                item.appendChild(nameSpan);
+                item.appendChild(countSpan);
+                statsList.appendChild(item);
+            });
         }
 
         let network = null;
@@ -343,6 +486,9 @@ Haiti : (Saint Lucia - Barbados - Aruba - Honduras - Costa Rica - Nicaragua)</te
                     }
                 });
             });
+
+            // Trigger the statistical calculation
+            calculateStats(nodesMap, edges);
 
             const container = document.getElementById('network');
             const data = {

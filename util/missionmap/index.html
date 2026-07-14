@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Map App</title>
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        
+        .ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 320px;
+            box-sizing: border-box;
+        }
+
+        .ui-panel h3 { margin: 0; font-size: 18px; color: #2c3e50; }
+        .ui-panel p { margin: 0; font-size: 14px; color: #555; line-height: 1.4; }
+
+        button {
+            padding: 10px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover { background: #34495e; }
+        button.active { background: #e74c3c; }
+        button.danger { background: #c0392b; }
+        button.danger:hover { background: #e74c3c; }
+
+        .poi-marker {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+
+        .poi-marker:hover {
+            transform: scale(1.1);
+            z-index: 5;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 20;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-input-group input[type="color"] {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Custom Hover Popup Styling */
+        .hover-popup .maplibregl-popup-content {
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            width: max-content;
+            max-width: 280px;
+            pointer-events: none; /* Prevent popup from interfering with mouse events */
+        }
+        
+        .hover-popup .maplibregl-popup-close-button {
+            display: none;
+        }
+
+        .hover-popup-title {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .hover-popup-category {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .hover-popup-desc {
+            margin: 0;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="ui-panel" class="ui-panel">
+    <h3 id="panel-title">Campus Map</h3>
+    <p id="panel-desc">Interactive campus guide.</p>
+    
+    <div id="edit-controls" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        <button id="add-poi-btn">Add New POI</button>
+        <button id="export-btn" style="background: #27ae60;">Export POIs to Clipboard</button>
+        <p id="status-text" style="margin: 0; font-size: 12px; color: #e74c3c; text-align: center; display: none;">Click on map to place POI. Click existing POI to edit.</p>
+    </div>
+</div>
+
+<div id="poi-modal" class="modal-overlay">
+    <div class="modal">
+        <h3 id="modal-title" style="margin: 0;">POI Details</h3>
+        <input type="text" id="poi-title" placeholder="Title (e.g., Office of the Registrar)">
+        <input type="text" id="poi-category" placeholder="Category (e.g., Office)">
+        <textarea id="poi-desc" placeholder="Handles registration, records..." rows="3"></textarea>
+        <input type="text" id="poi-emoji" placeholder="Symbol (e.g., 💼)">
+        
+        <div class="color-input-group">
+            <input type="color" id="poi-color-picker" value="#8e44ad">
+            <input type="text" id="poi-color-text" placeholder="Hex Code (e.g., #8e44ad)" style="flex: 1;">
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button id="save-poi-btn" style="flex: 1; background: #27ae60;">Save</button>
+            <button id="cancel-poi-btn" style="flex: 1; background: #95a5a6;">Cancel</button>
+        </div>
+        <button id="delete-poi-btn" class="danger" style="display: none; width: 100%;">Delete POI</button>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const isEditMode = true; 
+    
+    // These variables power the top-left box when isEditMode is false
+    const configMapTitle = "Institut Teknologi Bandung";
+    const configMapDescription = "Welcome to the interactive campus map. Hover over the markers to explore buildings, offices, and facilities across the main campus.";
+
+    // Paste your exported variable here later. 
+   const savedPOIs = []; 
+    // ---------------------
+
+    // Initialize UI based on mode
+    const uiPanelTitle = document.getElementById('panel-title');
+    const uiPanelDesc = document.getElementById('panel-desc');
+    const editControls = document.getElementById('edit-controls');
+
+    if (!isEditMode) {
+        editControls.style.display = 'none';
+        uiPanelTitle.innerText = configMapTitle;
+        uiPanelDesc.innerText = configMapDescription;
+    } else {
+        uiPanelTitle.innerText = "Campus Map Editor";
+        uiPanelDesc.innerText = "Manage locations and export data.";
+    }
+
+    const map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+        center: [107.6106, -6.8915],
+        zoom: 16,
+        pitch: 60,
+        bearing: -20,
+        antialias: true
+    });
+
+    let currentMapMarkers = [];
+    let isAddingMode = false;
+    let pendingCoords = null;
+    let editingPoiId = null;
+
+    // Single popup instance used for hover effects
+    const hoverPopup = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        className: 'hover-popup',
+        offset: 25
+    });
+
+    // Modal Elements
+    const addBtn = document.getElementById('add-poi-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const statusText = document.getElementById('status-text');
+    const modal = document.getElementById('poi-modal');
+    const modalTitleText = document.getElementById('modal-title');
+    const titleInput = document.getElementById('poi-title');
+    const categoryInput = document.getElementById('poi-category');
+    const descInput = document.getElementById('poi-desc');
+    const emojiInput = document.getElementById('poi-emoji');
+    const colorPicker = document.getElementById('poi-color-picker');
+    const colorText = document.getElementById('poi-color-text');
+    const deleteBtn = document.getElementById('delete-poi-btn');
+
+    // Sync color picker and text input
+    colorPicker.addEventListener('input', (e) => { colorText.value = e.target.value; });
+    colorText.addEventListener('input', (e) => { 
+        if(/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+            colorPicker.value = e.target.value; 
+        }
+    });
+
+    map.on('load', () => {
+        map.addLayer({
+            'id': '3d-buildings',
+            'source': 'carto',
+            'source-layer': 'building',
+            'type': 'fill-extrusion',
+            'minzoom': 15,
+            'paint': {
+                'fill-extrusion-color': '#e0e0e0',
+                'fill-extrusion-height': ['get', 'render_height'],
+                'fill-extrusion-base': ['get', 'render_min_height'],
+                'fill-extrusion-opacity': 0.8
+            }
+        });
+        loadAndRenderPOIs();
+    });
+
+    function getCombinedPOIs() {
+        let localData = JSON.parse(localStorage.getItem('itb_pois') || '[]');
+        
+        // Ensure all loaded POIs have an ID for editing purposes
+        let merged = [...savedPOIs, ...localData].map(poi => {
+            if (!poi.id) poi.id = Date.now() + Math.random().toString().slice(2, 8);
+            return poi;
+        });
+        return merged;
+    }
+
+    function saveLocalPOIs(pois) {
+        // Only save POIs that originated locally (not from the hardcoded savedPOIs array)
+        // To keep it simple for this demo, we'll store everything in local storage once modified,
+        // but ideally you export and clear local storage. 
+        localStorage.setItem('itb_pois', JSON.stringify(pois));
+    }
+
+    function loadAndRenderPOIs() {
+        currentMapMarkers.forEach(m => m.remove());
+        currentMapMarkers = [];
+
+        const allPOIs = getCombinedPOIs();
+
+        allPOIs.forEach(poi => {
+            const el = document.createElement('div');
+            el.className = 'poi-marker';
+            el.style.backgroundColor = poi.color;
+            el.innerText = poi.emoji;
+
+            // Hover interactions
+            el.addEventListener('mouseenter', () => {
+                const categoryHtml = poi.category ? `<p class="hover-popup-category" style="color: ${poi.color};">${poi.category}</p>` : '';
+                const popupContent = `
+                    <div class="poi-hover-content">
+                        <h4 class="hover-popup-title">${poi.title}</h4>
+                        ${categoryHtml}
+                        <p class="hover-popup-desc">${poi.desc}</p>
+                    </div>
+                `;
+                
+                hoverPopup.setLngLat([poi.lng, poi.lat])
+                    .setHTML(popupContent)
+                    .addTo(map);
+            });
+
+            el.addEventListener('mouseleave', () => {
+                hoverPopup.remove();
+            });
+
+            // Click interaction (Edit Mode Only)
+            el.addEventListener('click', (e) => {
+                if (!isEditMode) return;
+                e.stopPropagation(); // Prevent triggering the map click event
+                openModalForEdit(poi);
+            });
+
+            const marker = new maplibregl.Marker({ element: el })
+                .setLngLat([poi.lng, poi.lat])
+                .addTo(map);
+            
+            currentMapMarkers.push(marker);
+        });
+    }
+
+    // Toggle Add Mode
+    addBtn.addEventListener('click', () => {
+        isAddingMode = !isAddingMode;
+        if (isAddingMode) {
+            addBtn.classList.add('active');
+            addBtn.innerText = 'Cancel Add Mode';
+            statusText.style.display = 'block';
+            map.getCanvas().style.cursor = 'crosshair';
+        } else {
+            addBtn.classList.remove('active');
+            addBtn.innerText = 'Add New POI';
+            statusText.style.display = 'none';
+            map.getCanvas().style.cursor = '';
+        }
+    });
+
+    // Map Click Handler for placing new POI
+    map.on('click', (e) => {
+        if (!isAddingMode || !isEditMode) return;
+        
+        pendingCoords = e.lngLat;
+        openModalForNew();
+        
+        isAddingMode = false;
+        addBtn.classList.remove('active');
+        addBtn.innerText = 'Add New POI';
+        statusText.style.display = 'none';
+        map.getCanvas().style.cursor = '';
+    });
+
+    function openModalForNew() {
+        modalTitleText.innerText = "Add New POI";
+        titleInput.value = '';
+        categoryInput.value = '';
+        descInput.value = '';
+        emojiInput.value = '';
+        colorPicker.value = '#8e44ad';
+        colorText.value = '#8e44ad';
+        editingPoiId = null;
+        deleteBtn.style.display = 'none';
+        modal.style.display = 'flex';
+    }
+
+    function openModalForEdit(poi) {
+        modalTitleText.innerText = "Edit POI";
+        titleInput.value = poi.title || '';
+        categoryInput.value = poi.category || '';
+        descInput.value = poi.desc || '';
+        emojiInput.value = poi.emoji || '';
+        colorPicker.value = poi.color || '#8e44ad';
+        colorText.value = poi.color || '#8e44ad';
+        editingPoiId = poi.id;
+        deleteBtn.style.display = 'block';
+        modal.style.display = 'flex';
+    }
+
+    // Save POI (New or Edited)
+    document.getElementById('save-poi-btn').addEventListener('click', () => {
+        let allPOIs = getCombinedPOIs();
+
+        const poiData = {
+            title: titleInput.value || 'Unnamed Location',
+            category: categoryInput.value || '',
+            desc: descInput.value || '',
+            emoji: emojiInput.value || '📍',
+            color: colorText.value || '#8e44ad'
+        };
+
+        if (editingPoiId) {
+            // Update existing
+            const index = allPOIs.findIndex(p => p.id === editingPoiId);
+            if (index !== -1) {
+                allPOIs[index] = { ...allPOIs[index], ...poiData };
+            }
+        } else if (pendingCoords) {
+            // Add new
+            poiData.id = Date.now().toString();
+            poiData.lng = pendingCoords.lng;
+            poiData.lat = pendingCoords.lat;
+            allPOIs.push(poiData);
+        }
+
+        // Overwrite local storage entirely to reflect edits/additions
+        saveLocalPOIs(allPOIs);
+
+        modal.style.display = 'none';
+        pendingCoords = null;
+        editingPoiId = null;
+        loadAndRenderPOIs();
+    });
+
+    // Delete POI
+    deleteBtn.addEventListener('click', () => {
+        if (!editingPoiId) return;
+        
+        if (confirm("Are you sure you want to delete this location?")) {
+            let allPOIs = getCombinedPOIs();
+            allPOIs = allPOIs.filter(p => p.id !== editingPoiId);
+            saveLocalPOIs(allPOIs);
+            
+            modal.style.display = 'none';
+            editingPoiId = null;
+            loadAndRenderPOIs();
+            hoverPopup.remove(); // Clear popup if hovering while deleting
+        }
+    });
+
+    // Cancel POI
+    document.getElementById('cancel-poi-btn').addEventListener('click', () => {
+        modal.style.display = 'none';
+        pendingCoords = null;
+        editingPoiId = null;
+    });
+
+    // Export Functionality
+    exportBtn.addEventListener('click', () => {
+        let allPOIs = getCombinedPOIs();
+        const exportString = `const savedPOIs = ${JSON.stringify(allPOIs, null, 4)};`;
+        
+        navigator.clipboard.writeText(exportString).then(() => {
+            alert('JavaScript variable copied to clipboard! Paste it over the savedPOIs variable in your code.');
+        }).catch(err => {
+            alert('Failed to copy to clipboard. Please check console.');
+            console.error(err);
+        });
+    });
+</script>
+
+</body>
+</html>

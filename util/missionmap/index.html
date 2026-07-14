@@ -186,8 +186,8 @@
     const isEditMode = true; 
     
     // These variables power the top-left box when isEditMode is false
-    const configMapTitle = "Institut Teknologi Bandung";
-    const configMapDescription = "Welcome to the interactive campus map. Hover over the markers to explore buildings, offices, and facilities across the main campus.";
+    const configMapTitle = "MAP TITLE";
+    const configMapDescription = "MAP DESCRIPTION";
 
     // Paste your exported variable here later. 
    const savedPOIs = []; 
@@ -209,13 +209,50 @@
 
     const map = new maplibregl.Map({
         container: 'map',
-        style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-        center: [107.6106, -6.8915],
-        zoom: 16,
-        pitch: 60,
-        bearing: -20,
+        //style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+        style: 'https://tiles.openfreemap.org/styles/bright',
+        //center: [107.6106, -6.8915],
+        center: [107.0662, -6.2717],
+zoom: 18.25,
+pitch: 39.0,
+bearing: -21.5,
         antialias: true
     });
+
+
+map.on("moveend", () => {
+    const c = map.getCenter();
+
+    console.log(`center: [${c.lng.toFixed(4)}, ${c.lat.toFixed(4)}],
+zoom: ${map.getZoom().toFixed(2)},
+pitch: ${map.getPitch().toFixed(1)},
+bearing: ${map.getBearing().toFixed(1)},`);
+});
+
+map.keyboard.disable();
+
+window.addEventListener("keydown", (e) => {
+    if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target.isContentEditable
+    ) {
+        return;
+    }
+
+    if (e.key === "+" || e.key === "=") {
+        e.preventDefault();
+        map.easeTo({ zoom: map.getZoom() + 0.25 });
+    }
+
+    if (e.key === "-") {
+        e.preventDefault();
+        map.easeTo({ zoom: map.getZoom() - 0.25 });
+    }
+});
+
+
+
 
     let currentMapMarkers = [];
     let isAddingMode = false;
@@ -253,19 +290,55 @@
     });
 
     map.on('load', () => {
+
+
+const layers = map.getStyle().layers;
+
+    let labelLayerId;
+    for (let i = 0; i < layers.length; i++) {
+        if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+            labelLayerId = layers[i].id;
+            break;
+        }
+    }
+
+
+
+
+
+        map.addSource('openfreemap', {
+        url: `https://tiles.openfreemap.org/planet`,
+        type: 'vector',
+    });
+
         map.addLayer({
             'id': '3d-buildings',
-            'source': 'carto',
+            'source': 'openfreemap',
             'source-layer': 'building',
             'type': 'fill-extrusion',
             'minzoom': 15,
+            'filter': ['!=', ['get', 'hide_3d'], true],
             'paint': {
-                'fill-extrusion-color': '#e0e0e0',
-                'fill-extrusion-height': ['get', 'render_height'],
-                'fill-extrusion-base': ['get', 'render_min_height'],
-                'fill-extrusion-opacity': 0.8
+                'fill-extrusion-color': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'render_height'], 0, 'lightgray', 200, 'royalblue', 400, 'lightblue'
+                ],
+                'fill-extrusion-height': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    15,
+                    0,
+                    16,
+                    ['get', 'render_height']
+                ],
+                'fill-extrusion-base': ['case',
+                    ['>=', ['get', 'zoom'], 16],
+                    ['get', 'render_min_height'], 0
+                ]
             }
-        });
+        },labelLayerId);
         loadAndRenderPOIs();
     });
 

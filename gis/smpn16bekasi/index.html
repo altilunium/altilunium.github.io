@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Map App</title>
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        
+        .ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 320px;
+            box-sizing: border-box;
+        }
+
+        .ui-panel h3 { margin: 0; font-size: 18px; color: #2c3e50; }
+        .ui-panel p { margin: 0; font-size: 14px; color: #555; line-height: 1.4; }
+
+        button {
+            padding: 10px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover { background: #34495e; }
+        button.active { background: #e74c3c; }
+        button.danger { background: #c0392b; }
+        button.danger:hover { background: #e74c3c; }
+
+        .poi-marker {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+
+        .poi-marker:hover {
+            transform: scale(1.1);
+            z-index: 5;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 20;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-input-group input[type="color"] {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Custom Hover Popup Styling */
+        .hover-popup .maplibregl-popup-content {
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            width: max-content;
+            max-width: 280px;
+            pointer-events: none; /* Prevent popup from interfering with mouse events */
+        }
+        
+        .hover-popup .maplibregl-popup-close-button {
+            display: none;
+        }
+
+        .hover-popup-title {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .hover-popup-category {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .hover-popup-desc {
+            margin: 0;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="ui-panel" class="ui-panel">
+    <h3 id="panel-title">Campus Map</h3>
+    <p id="panel-desc">Interactive campus guide.</p>
+    
+    <div id="edit-controls" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        <button id="add-poi-btn">Add New POI</button>
+        <button id="export-btn" style="background: #27ae60;">Export POIs to Clipboard</button>
+        <p id="status-text" style="margin: 0; font-size: 12px; color: #e74c3c; text-align: center; display: none;">Click on map to place POI. Click existing POI to edit.</p>
+    </div>
+</div>
+
+<div id="poi-modal" class="modal-overlay">
+    <div class="modal">
+        <h3 id="modal-title" style="margin: 0;">POI Details</h3>
+        <input type="text" id="poi-title" placeholder="Title (e.g., Office of the Registrar)">
+        <input type="text" id="poi-category" placeholder="Category (e.g., Office)">
+        <textarea id="poi-desc" placeholder="Handles registration, records..." rows="3"></textarea>
+        <input type="text" id="poi-emoji" placeholder="Symbol (e.g., 💼)">
+        
+        <div class="color-input-group">
+            <input type="color" id="poi-color-picker" value="#8e44ad">
+            <input type="text" id="poi-color-text" placeholder="Hex Code (e.g., #8e44ad)" style="flex: 1;">
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button id="save-poi-btn" style="flex: 1; background: #27ae60;">Save</button>
+            <button id="cancel-poi-btn" style="flex: 1; background: #95a5a6;">Cancel</button>
+        </div>
+        <button id="delete-poi-btn" class="danger" style="display: none; width: 100%;">Delete POI</button>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const isEditMode = false; 
+    
+    // These variables power the top-left box when isEditMode is false
+    const configMapTitle = "SMPN 16 Bekasi";
+    const configMapDescription = "circa 2010s";
+
+    // Paste your exported variable here later. 
+   const savedPOIs = [
+    {
+        "lng": 107.61113227208637,
+        "lat": -6.893644751276767,
+        "title": "Masjid Salman ITB",
+        "desc": "Masjid ((utamanya)) di ITB.",
+        "emoji": "🕌",
+        "color": "#008f1d",
+        "id": "1784023222207407693",
+        "category": "Masjid"
+    },
+    {
+        "title": "Labtek V",
+        "category": "Ruang Kelas",
+        "desc": "Kelas 135 ada di sini semua.",
+        "emoji": "💻",
+        "color": "#f50000",
+        "id": "1784023222207",
+        "lng": 107.60963207358657,
+        "lat": -6.890535014765021
+    },
+    {
+        "title": "Salman Reading Center",
+        "category": "Perpustakaan",
+        "desc": "Koleksi bukunya lengkap dan menarik.",
+        "emoji": "📖",
+        "color": "#00cbe6",
+        "id": "1784023331358",
+        "lng": 107.61119747049776,
+        "lat": -6.894108678557714
+    },
+    {
+        "title": "RM Pak Datuak",
+        "category": "Masakan Padang",
+        "desc": "Langganan",
+        "emoji": "🍽",
+        "color": "#fa8500",
+        "id": "1784023379766",
+        "lng": 107.61075408782443,
+        "lat": -6.895033618365531
+    },
+    {
+        "title": "Cisitu Tegalega",
+        "category": "Angkot Stop",
+        "desc": "Naik di sini untuk pergi ke Cisitu",
+        "emoji": "🚇",
+        "color": "#8e44ad",
+        "id": "1784023509733",
+        "lng": 107.60840722511045,
+        "lat": -6.8938316262529185
+    },
+    {
+        "title": "Kalapa - Dago",
+        "category": "Angkot Stop",
+        "desc": "Naik disini untuk ke Dago Atas",
+        "emoji": "🚇",
+        "color": "#8e44ad",
+        "id": "1784023567068",
+        "lng": 107.61293702981027,
+        "lat": -6.893715697310128
+    },
+    {
+        "title": "Masjid BATAN",
+        "category": "Masjid",
+        "desc": "Alternatif masjid bagi yang gak mau ke Salman...",
+        "emoji": "🕌",
+        "color": "#008f1d",
+        "id": "1784023628540",
+        "lng": 107.60777449845261,
+        "lat": -6.888704299767639
+    },
+    {
+        "title": "Aula Barat",
+        "category": "Aula Pertemuan",
+        "desc": "Banyak acara besar diadakan di sini",
+        "emoji": "🏢",
+        "color": "#0755bb",
+        "id": "1784023791043",
+        "lng": 107.6096879605517,
+        "lat": -6.892467398504024
+    },
+    {
+        "title": "Aula Timur",
+        "category": "Aula Pertemuan",
+        "desc": "Banyak acara besar diadakan di sini",
+        "emoji": "🏢",
+        "color": "#0755bb",
+        "id": "1784023822210",
+        "lng": 107.61103421932489,
+        "lat": -6.8923751498303005
+    },
+    {
+        "title": "Auditorium IPTEK",
+        "category": "Aula Pertemuan",
+        "desc": "Tersembunyi. Ada di bawah tanah (basement) CC Timur. Suasananya seperti bioskop. Biasa digunakan untuk seminar-seminar.",
+        "emoji": "🏢",
+        "color": "#0755bb",
+        "id": "1784023924986",
+        "lng": 107.61102441570296,
+        "lat": -6.8913338142398
+    },
+    {
+        "title": "ATM Center",
+        "category": "ATM",
+        "desc": "",
+        "emoji": "💵",
+        "color": "#0cedde",
+        "id": "1784024018049",
+        "lng": 107.61054370444208,
+        "lat": -6.892161360132405
+    },
+    {
+        "title": "Masjid Al Jihad",
+        "category": "Masjid",
+        "desc": "Tiap jam istirahat, banyak yang rajin shalat duha di sini.",
+        "emoji": "📍",
+        "color": "#4aad43",
+        "id": "1784033853676",
+        "lng": 107.06610838043213,
+        "lat": -6.271217320563466
+    },
+    {
+        "title": "X6",
+        "category": "Ruang Kelas",
+        "desc": "",
+        "emoji": "📍",
+        "color": "#1292ca",
+        "id": "1784033871868",
+        "lng": 107.06629724999948,
+        "lat": -6.271265231384362
+    },
+    {
+        "title": "11 IPA 2 / 12 IPA 1",
+        "category": "Ruang Kelas",
+        "desc": "",
+        "emoji": "📍",
+        "color": "#1292ca",
+        "id": "1784033900276",
+        "lng": 107.06702942614112,
+        "lat": -6.272017446108265
+    },
+    {
+        "title": "Sekretariat IT Club",
+        "category": "Sekretariat",
+        "desc": "Isinya apa ya? Kabel RJ-45. Lemari. Berkas-berkas.. Apa lagi ya?",
+        "emoji": "📍",
+        "color": "#ffffff",
+        "id": "1784033928355",
+        "lng": 107.06696420056261,
+        "lat": -6.271337421470022
+    },
+    {
+        "title": "Lab Komputer",
+        "category": "",
+        "desc": "\"Sekretariat kedua\" IT Club...\nTempat praktek TIK...",
+        "emoji": "📍",
+        "color": "#ffffff",
+        "id": "1784033983699",
+        "lng": 107.06627702820924,
+        "lat": -6.271870255220918
+    },
+    {
+        "title": "Kantin",
+        "category": "",
+        "desc": "Menu favorit : mie tek-tek campur nasi; nasi goreng; roti bakar; soto ayam",
+        "emoji": "📍",
+        "color": "#e60000",
+        "id": "1784034006291",
+        "lng": 107.06655051522216,
+        "lat": -6.27190900917617
+    },
+    {
+        "title": "Perpustakaan",
+        "category": "",
+        "desc": "Jarang dipakai. Jarang dikunjungi. ",
+        "emoji": "📍",
+        "color": "#36119c",
+        "id": "1784034649910",
+        "lng": 107.06629234159033,
+        "lat": -6.2714231091370465
+    },
+    {
+        "title": "Ruang TU",
+        "category": "",
+        "desc": "Bayar SPP di sini...",
+        "emoji": "📍",
+        "color": "#36119c",
+        "id": "1784034892084",
+        "lng": 107.06627181396425,
+        "lat": -6.271549848932082
+    },
+    {
+        "title": "Ruang Guru",
+        "category": "",
+        "desc": "Ku keluar-masuk kesini kalau mau nganter buku/kertas/dokumen ke meja guru... Di jendela luarnya, sering ditempel nilai hasil UTS-UAS. Pengumuman siapa aja yang remed.",
+        "emoji": "📍",
+        "color": "#36119c",
+        "id": "1784034960051",
+        "lng": 107.0669273688992,
+        "lat": -6.271722447043857
+    },
+    {
+        "title": "Aula",
+        "category": "",
+        "desc": "Besar sekali. Di lantai dua. Bisa muat buanyaaakk orang.",
+        "emoji": "📍",
+        "color": "#36119c",
+        "id": "1784035051291",
+        "lng": 107.06621820998913,
+        "lat": -6.271479480614346
+    },
+    {
+        "title": "Lab Kimia",
+        "category": "",
+        "desc": "Aku pernah keracunan gas aneh waktu ujian praktek di sini.. Di jendela luarnya, sering ditempel nilai hasil UTS-UAS. Pengumuman siapa aja yang remed.",
+        "emoji": "📍",
+        "color": "#36119c",
+        "id": "1784035127946",
+        "lng": 107.0667754481318,
+        "lat": -6.271868257616816
+    },
+    {
+        "title": "GOR Tambun",
+        "category": "",
+        "desc": "Seisi \"stadion\"-nya bisa disewa buat tanding futsal antar kelas...\n\nPernah dipake buat ujian praktek beep-test...\n\nPernah dipake buat acara peringatan hari besar islam..",
+        "emoji": "⚽",
+        "color": "#000000",
+        "id": "1784035274177",
+        "lng": 107.06554962157827,
+        "lat": -6.271344779613386
+    },
+    {
+        "title": "Selasar Luar GOR Tambun",
+        "category": "",
+        "desc": "Biasa dipakai untuk kumpul-kumpul ekskul...",
+        "emoji": "📍",
+        "color": "#ffffff",
+        "id": "1784035322553",
+        "lng": 107.06542434485578,
+        "lat": -6.271296435420254
+    },
+    {
+        "title": "\"Taman\" (?)",
+        "category": "",
+        "desc": "Lahan di taman ini pernah dipakai untuk praktek penggalian biopori untuk pelajaran PLH (Pendidikan Lingkungan Hidup).",
+        "emoji": "🌲",
+        "color": "#4abc15",
+        "id": "1784035475520",
+        "lng": 107.06690769788821,
+        "lat": -6.271947545642831
+    },
+    {
+        "title": "Ruang IEC",
+        "category": "",
+        "desc": "Kursus bahasa inggris swasta yang -- entah kenapa -- \"built-in\" ke kurikulum SMA negeri. Jadi, dobel gitu. Ada pelajaran \"bahasa inggris\", ada pelajaran \"kursus bahasa inggris di IEC\". Jam \"kursus\" ini bisa diadakan di kelas masing-masing, atau di ruang IEC ini. Tapi, secara materi pelajaran, seruan IEC.. Karena bisa langsung sekalian test TOEFL.",
+        "emoji": "📍",
+        "color": "#36119c",
+        "id": "1784035590815",
+        "lng": 107.06616961133221,
+        "lat": -6.2716806199407955
+    },
+    {
+        "title": "Mading",
+        "category": "",
+        "desc": "... lumayan jarang diupdate",
+        "emoji": "📍",
+        "color": "#36119c",
+        "id": "1784035953869",
+        "lng": 107.06615973512021,
+        "lat": -6.271625298647635
+    },
+    {
+        "title": "Lapangan Upacara",
+        "category": "",
+        "desc": "... paling luas",
+        "emoji": "🟩",
+        "color": "#8e44ad",
+        "id": "1784036021196",
+        "lng": 107.06645611195984,
+        "lat": -6.2715828715045205
+    },
+    {
+        "title": "Lapangan Basket",
+        "category": "",
+        "desc": "Ada \"kandangnya\", semacam \"cage match\" di WWE... ",
+        "emoji": "🟩",
+        "color": "#8e44ad",
+        "id": "1784036060164",
+        "lng": 107.06674062779229,
+        "lat": -6.271640174298184
+    },
+    {
+        "title": "... ini juga lapangan (?)",
+        "category": "",
+        "desc": "lebih cocok disebut \"ruang kosong\" ketimbang lapangan.. karena dari dimensinya, gak jelas, ini sebenernya lapangan untuk olahraga apaan",
+        "emoji": "🟩",
+        "color": "#8e44ad",
+        "id": "1784036102011",
+        "lng": 107.06696067042225,
+        "lat": -6.27157746700307
+    },
+    {
+        "title": "Pintu Gerbang",
+        "category": "",
+        "desc": "Pintu keluar-masuk utama. Tidak ada jalur tikus sama sekali untuk bisa keluar masuk. Gerbangnya besar. Pagarnya tinggi. Ada pos satpamnya. Juga besar",
+        "emoji": "🧱",
+        "color": "#ff0000",
+        "id": "1784036181075",
+        "lng": 107.06597608562868,
+        "lat": -6.271459529907148
+    },
+    {
+        "title": "Toilet",
+        "category": "",
+        "desc": "",
+        "emoji": "📍",
+        "color": "#36119c",
+        "id": "1784036534000",
+        "lng": 107.06723027010537,
+        "lat": -6.27149500103576
+    },
+    {
+        "title": "Ruang Kelas (Unggulan)",
+        "category": "",
+        "desc": "Kalau enggak salah, selama tiga tahun, kelasku ada di sini.... Di lantai duanya.\n\nDi lantai duanya ada tiga ruang kelas. Pada waktu SMP16 masih pakai sistem \"sekolah standar nasional\", tiga kelas ini digunakan untuk ruang kelas \"unggulan\" khusus. Ada AC-nya. Kursinya mewah meliuk-liuk. Ada jam pelajaran tambahan (lebih panjang) untuk beberapa mata pelajaran khusus.\n\nKarena banyak \"barang berharga\" di zona kelas unggulan ini, ada semacam \"pagar besi besar\" yang memisahkan area \"kelas unggulan\" dan \"kelas reguler\"... Mungkin, kalau malam, digembok gitu.. Tapi, kesannya jadi kyk literal tembok berlin.",
+        "emoji": "📍",
+        "color": "#0ca5c0",
+        "id": "1784039721852",
+        "lng": 107.01018267379487,
+        "lat": -6.277056851694823
+    },
+    {
+        "title": "Kebun KIR",
+        "category": "",
+        "desc": "... dulu ada kebun KIR di sini... Ada beberapa pot tanaman. Atapnya pakai jaring-jaring paranet.  Sepertinya sekarang jadi tempat parkir biasa",
+        "emoji": "📍",
+        "color": "#409810",
+        "id": "1784039758184",
+        "lng": 107.01023302067074,
+        "lat": -6.277663274717511
+    },
+    {
+        "title": "Tiang.... Olahraga?",
+        "category": "",
+        "desc": "Ada tiang gelantungan di sini... Mungkin untuk tes olahraga, tapi ku lumayan sering gelantungan di sini...",
+        "emoji": "🏐",
+        "color": "#ff0000",
+        "id": "1784039820040",
+        "lng": 107.01026801829886,
+        "lat": -6.277210922408187
+    },
+    {
+        "title": "Lab Fisika",
+        "category": "",
+        "desc": "Di lantai satunya... Waktu LDKS, kegiatannya juga di sini..",
+        "emoji": "📍",
+        "color": "#8e44ad",
+        "id": "1784039890975",
+        "lng": 107.0101242619271,
+        "lat": -6.277037055394118
+    },
+    {
+        "title": "Lab Bahasa",
+        "category": "",
+        "desc": "Buat tes listening bahasa inggris.. Tiap meja, ada headsetnya gitu.. ",
+        "emoji": "📍",
+        "color": "#8e44ad",
+        "id": "1784039916279",
+        "lng": 107.01022806952244,
+        "lat": -6.277083111024282
+    },
+    {
+        "title": "Lab Komputer",
+        "category": "",
+        "desc": "Satu meja, satu komputer... Buat tes praktek word/excel. Nanti dikasih dokumen gitu. Kita disuruh buat dokumen itu semirip mungkin. Dikasih batas waktu.",
+        "emoji": "📍",
+        "color": "#8e44ad",
+        "id": "1784039982871",
+        "lng": 107.01032831861664,
+        "lat": -6.277224224502277
+    },
+    {
+        "title": "Sekre Pramuka/Paskib",
+        "category": "",
+        "desc": "Ku gak pernah masuk karena bukan pramuka/paskib... Aku KIR dan KIR gak ada sekrenya waktu itu...",
+        "emoji": "📍",
+        "color": "#ffffff",
+        "id": "1784040018951",
+        "lng": 107.0103334132562,
+        "lat": -6.277119824027693
+    },
+    {
+        "title": "Tempat Wudu",
+        "category": "",
+        "desc": "Musholanya ada di lantai dua, di bangunan perpustakaan.",
+        "emoji": "📍",
+        "color": "#0008ff",
+        "id": "1784040047278",
+        "lng": 107.01043176140325,
+        "lat": -6.2770408361486005
+    },
+    {
+        "title": "Gorengan",
+        "category": "",
+        "desc": "Di antara tempat wudu dan WC, ada gerobak gorengan.. Langgananku..\n\nTiga tahun sekolah di sini, kyknya jajanku sehari-hari cuma.. gorengan? ",
+        "emoji": "📍",
+        "color": "#ff7300",
+        "id": "1784040086470",
+        "lng": 107.01039245174366,
+        "lat": -6.277032940055676
+    },
+    {
+        "title": "Perpustakaan - Musholla",
+        "category": "",
+        "desc": "Perpustakaan di lantai satu. Musholla di lantai dua. ",
+        "emoji": "📍",
+        "color": "#8e44ad",
+        "id": "1784040257261",
+        "lng": 107.01044202541851,
+        "lat": -6.2771380064763775
+    },
+    {
+        "title": "Pintu Gerbang Utama",
+        "category": "",
+        "desc": "Ada gerbang. Ada pagar.",
+        "emoji": "🧱",
+        "color": "#ff0000",
+        "id": "1784040287325",
+        "lng": 107.01044086089934,
+        "lat": -6.277371512377329
+    },
+    {
+        "title": "Ruangan Tembus Langsung ke Lapangan",
+        "category": "",
+        "desc": "Jalur khusus VIP. Kalau siswa, lewat koridor samping.",
+        "emoji": "🚶‍♀️",
+        "color": "#8e44ad",
+        "id": "1784040326764",
+        "lng": 107.01030110094985,
+        "lat": -6.277319416439909
+    },
+    {
+        "title": "Koridor Samping",
+        "category": "",
+        "desc": "Tempat keluar-masuk utama untuk siswa. Kalau jam sibuk, muaaaceet sekali.",
+        "emoji": "⚠",
+        "color": "#fff700",
+        "id": "1784040366892",
+        "lng": 107.01040429072066,
+        "lat": -6.277180235814853
+    },
+    {
+        "title": "Lapangan Upacara...",
+        "category": "",
+        "desc": "",
+        "emoji": "🟩",
+        "color": "#8e44ad",
+        "id": "1784040422987",
+        "lng": 107.01013879046496,
+        "lat": -6.277246426638641
+    },
+    {
+        "title": "Aula (?)",
+        "category": "",
+        "desc": "Dua ruang kelas di sini sebenarnya bisa disatukan... Kalau ada acara-acara penting, pembatasnya bisa dicabut, jadi aula dadakan.",
+        "emoji": "📍",
+        "color": "#8e44ad",
+        "id": "1784040457811",
+        "lng": 107.01000275221702,
+        "lat": -6.277188550316652
+    },
+    {
+        "title": "Koridor Samping (Juga)",
+        "category": "",
+        "desc": "Jarang dilalui, karena biasanya pagarnya ditutup... Tapi kalau pagarnya dibuka, banyak juga siswa keluar masuk lewat sini",
+        "emoji": "⚠",
+        "color": "#fff700",
+        "id": "1784040521715",
+        "lng": 107.01023177308753,
+        "lat": -6.277531015721792
+    },
+    {
+        "title": "Area Sekolah Filial",
+        "category": "",
+        "desc": "Sekolah pecahan (filial) dari SMP16 -- untuk sementara -- melakukan kegiatan belajar mengajar di daerah sini... sampai gedung sekolah mereka selesai dibangun",
+        "emoji": "🚸",
+        "color": "#04c393",
+        "id": "1784040609522",
+        "lng": 107.00993707726252,
+        "lat": -6.277510590437515
+    },
+    {
+        "title": "TU - Ruang Kepsek",
+        "category": "",
+        "desc": "... ada di deretan ini (lantai 1).. sementara itu, lantai 2-nya ada kelas biasa..",
+        "emoji": "📍",
+        "color": "#8e44ad",
+        "id": "1784040670522",
+        "lng": 107.01023321434872,
+        "lat": -6.277364147076398
+    },
+    {
+        "title": "Parkir (Swasta)",
+        "category": "",
+        "desc": "... pada waktu itu, siswa gak boleh bawa motor.. Jadinya, motor siswa gak bisa parkir di dalam.. Mereka harus parkir di sini (tempat parkir yang dikelola warga setempat)..",
+        "emoji": "🅿",
+        "color": "#757575",
+        "id": "1784040905632",
+        "lng": 107.0106355329869,
+        "lat": -6.277302002065014
+    },
+    {
+        "title": "Es Doger",
+        "category": "Jajan Jajan",
+        "desc": "Langgananku kalau pas pulang sekolah.. Kalau gak salah...",
+        "emoji": "🍧",
+        "color": "#ea10b0",
+        "id": "1784040951168",
+        "lng": 107.01044171493805,
+        "lat": -6.2774608087053565
+    },
+    {
+        "title": "Fotokopi",
+        "category": "",
+        "desc": "Fotokopi. ATK. Disini pusatnya. Baik siswa maupun guru, kalau ada perkara fotokopi dan alat tulis, selalu ke sini..\n\nOh iya, mereka juga jualan yoghurt dingin. Ku SUKAAAA banget beli yoghurt di sini..",
+        "emoji": "🏬",
+        "color": "#787779",
+        "id": "1784041018999",
+        "lng": 107.01070933091103,
+        "lat": -6.276952895071787
+    },
+    {
+        "title": "Timpuk Batu",
+        "category": "",
+        "desc": "Ada bocah-bocah yang lempar batu ke arah sekolah, dari sini....",
+        "emoji": "🔥",
+        "color": "#ff0000",
+        "id": "1784041091647",
+        "lng": 107.01004644636322,
+        "lat": -6.276908993355619
+    },
+    {
+        "title": "Jum'atan",
+        "category": "Masjid",
+        "desc": "Warga sekolah, biasanya jumatannya di sini... \n\nWaktu zaman ku dulu, masjid ini masih setengah direnovasi.. Jadi, belum ada dinding luarnya.. Sejuk banget.. Terpapar udara segar \"dari luar\" tanpa kehalang tembok.",
+        "emoji": "🕌",
+        "color": "#156f18",
+        "id": "1784041180918",
+        "lng": 107.00976684378793,
+        "lat": -6.2777584440174365
+    },
+    {
+        "title": "Tawuran",
+        "category": "",
+        "desc": "Waktu ku lagi berangkat ngerjain eksperimen roket air bareng rombongan KIR (siswa + guru) ke daerah sini, ternyata lapangannya lagi sibuk dipakai 2 sekolahan untuk tawuran...\n\nGuru pembina KIR-ku langsung -- sendirian -- maju ke depan, ngusir dua kubu yang tawuran itu (dan berhasil)",
+        "emoji": "🔥",
+        "color": "#ff0000",
+        "id": "1784041303717",
+        "lng": 107.00894639650892,
+        "lat": -6.277498735577723
+    },
+    {
+        "title": "Ruang Kosong",
+        "category": "",
+        "desc": "Di belakang sini, ada ruang kosong.. Ada jalan setapak... ",
+        "emoji": "🌲",
+        "color": "#0a5200",
+        "id": "1784041351045",
+        "lng": 107.0099503489921,
+        "lat": -6.277168726171055
+    },
+    {
+        "title": "Ruang Guru",
+        "category": "",
+        "desc": "lantai satu",
+        "emoji": "📍",
+        "color": "#8e44ad",
+        "id": "1784041930544",
+        "lng": 107.010174838907,
+        "lat": -6.277469904938329
+    },
+    {
+        "title": "\"Panggung\"",
+        "category": "",
+        "desc": "... di sini ada semacam \"panggung\" kotak.. kalau gak salah warnanya keramik merah..\n\nku lupa fungsinya buat apa.. mungkin buat pidato waktu amanat upacara?",
+        "emoji": "📍",
+        "color": "#8e44ad",
+        "id": "1784042060944",
+        "lng": 107.01020846205097,
+        "lat": -6.277319911018097
+    }
+];
+    // ---------------------
+
+    // Initialize UI based on mode
+    const uiPanelTitle = document.getElementById('panel-title');
+    const uiPanelDesc = document.getElementById('panel-desc');
+    const editControls = document.getElementById('edit-controls');
+
+    if (!isEditMode) {
+        editControls.style.display = 'none';
+        uiPanelTitle.innerText = configMapTitle;
+        uiPanelDesc.innerText = configMapDescription;
+    } else {
+        uiPanelTitle.innerText = "Campus Map Editor";
+        uiPanelDesc.innerText = "Manage locations and export data.";
+    }
+
+    const map = new maplibregl.Map({
+        container: 'map',
+        //style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+        style: 'https://tiles.openfreemap.org/styles/bright',
+        //center: [107.6106, -6.8915],
+center: [107.0101, -6.2775],
+zoom: 18.85,
+pitch: 58.0,
+bearing: -57.4,
+        antialias: true
+    });
+
+
+map.on("moveend", () => {
+    const c = map.getCenter();
+
+    console.log(`center: [${c.lng.toFixed(4)}, ${c.lat.toFixed(4)}],
+zoom: ${map.getZoom().toFixed(2)},
+pitch: ${map.getPitch().toFixed(1)},
+bearing: ${map.getBearing().toFixed(1)},`);
+});
+
+map.keyboard.disable();
+
+window.addEventListener("keydown", (e) => {
+    if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target.isContentEditable
+    ) {
+        return;
+    }
+
+    if (e.key === "+" || e.key === "=") {
+        e.preventDefault();
+        map.easeTo({ zoom: map.getZoom() + 0.25 });
+    }
+
+    if (e.key === "-") {
+        e.preventDefault();
+        map.easeTo({ zoom: map.getZoom() - 0.25 });
+    }
+});
+
+
+
+
+    let currentMapMarkers = [];
+    let isAddingMode = false;
+    let pendingCoords = null;
+    let editingPoiId = null;
+
+    // Single popup instance used for hover effects
+    const hoverPopup = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        className: 'hover-popup',
+        offset: 25
+    });
+
+    // Modal Elements
+    const addBtn = document.getElementById('add-poi-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const statusText = document.getElementById('status-text');
+    const modal = document.getElementById('poi-modal');
+    const modalTitleText = document.getElementById('modal-title');
+    const titleInput = document.getElementById('poi-title');
+    const categoryInput = document.getElementById('poi-category');
+    const descInput = document.getElementById('poi-desc');
+    const emojiInput = document.getElementById('poi-emoji');
+    const colorPicker = document.getElementById('poi-color-picker');
+    const colorText = document.getElementById('poi-color-text');
+    const deleteBtn = document.getElementById('delete-poi-btn');
+
+    // Sync color picker and text input
+    colorPicker.addEventListener('input', (e) => { colorText.value = e.target.value; });
+    colorText.addEventListener('input', (e) => { 
+        if(/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+            colorPicker.value = e.target.value; 
+        }
+    });
+
+    map.on('load', () => {
+
+
+const layers = map.getStyle().layers;
+
+    let labelLayerId;
+    for (let i = 0; i < layers.length; i++) {
+        if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+            labelLayerId = layers[i].id;
+            break;
+        }
+    }
+
+
+
+
+
+        map.addSource('openfreemap', {
+        url: `https://tiles.openfreemap.org/planet`,
+        type: 'vector',
+    });
+
+        map.addLayer({
+            'id': '3d-buildings',
+            'source': 'openfreemap',
+            'source-layer': 'building',
+            'type': 'fill-extrusion',
+            'minzoom': 15,
+            'filter': ['!=', ['get', 'hide_3d'], true],
+            'paint': {
+                'fill-extrusion-color': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'render_height'], 0, 'lightgray', 200, 'royalblue', 400, 'lightblue'
+                ],
+                'fill-extrusion-height': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    15,
+                    0,
+                    16,
+                    ['get', 'render_height']
+                ],
+                'fill-extrusion-base': ['case',
+                    ['>=', ['get', 'zoom'], 16],
+                    ['get', 'render_min_height'], 0
+                ]
+            }
+        },labelLayerId);
+        loadAndRenderPOIs();
+    });
+
+    function getCombinedPOIs() {
+        let localData = JSON.parse(localStorage.getItem('itb_pois') || '[]');
+        
+        // Ensure all loaded POIs have an ID for editing purposes
+        let merged = [...savedPOIs, ...localData].map(poi => {
+            if (!poi.id) poi.id = Date.now() + Math.random().toString().slice(2, 8);
+            return poi;
+        });
+        return merged;
+    }
+
+    function saveLocalPOIs(pois) {
+        // Only save POIs that originated locally (not from the hardcoded savedPOIs array)
+        // To keep it simple for this demo, we'll store everything in local storage once modified,
+        // but ideally you export and clear local storage. 
+        localStorage.setItem('itb_pois', JSON.stringify(pois));
+    }
+
+    function loadAndRenderPOIs() {
+        currentMapMarkers.forEach(m => m.remove());
+        currentMapMarkers = [];
+
+        const allPOIs = getCombinedPOIs();
+
+        allPOIs.forEach(poi => {
+            const el = document.createElement('div');
+            el.className = 'poi-marker';
+            el.style.backgroundColor = poi.color;
+            el.innerText = poi.emoji;
+
+            // Hover interactions
+            el.addEventListener('mouseenter', () => {
+                const categoryHtml = poi.category ? `<p class="hover-popup-category" style="color: ${poi.color};">${poi.category}</p>` : '';
+                const popupContent = `
+                    <div class="poi-hover-content">
+                        <h4 class="hover-popup-title">${poi.title}</h4>
+                        ${categoryHtml}
+                        <p class="hover-popup-desc">${poi.desc}</p>
+                    </div>
+                `;
+                
+                hoverPopup.setLngLat([poi.lng, poi.lat])
+                    .setHTML(popupContent)
+                    .addTo(map);
+            });
+
+            el.addEventListener('mouseleave', () => {
+                hoverPopup.remove();
+            });
+
+            // Click interaction (Edit Mode Only)
+            el.addEventListener('click', (e) => {
+                if (!isEditMode) return;
+                e.stopPropagation(); // Prevent triggering the map click event
+                openModalForEdit(poi);
+            });
+
+            const marker = new maplibregl.Marker({ element: el })
+                .setLngLat([poi.lng, poi.lat])
+                .addTo(map);
+            
+            currentMapMarkers.push(marker);
+        });
+    }
+
+    // Toggle Add Mode
+    addBtn.addEventListener('click', () => {
+        isAddingMode = !isAddingMode;
+        if (isAddingMode) {
+            addBtn.classList.add('active');
+            addBtn.innerText = 'Cancel Add Mode';
+            statusText.style.display = 'block';
+            map.getCanvas().style.cursor = 'crosshair';
+        } else {
+            addBtn.classList.remove('active');
+            addBtn.innerText = 'Add New POI';
+            statusText.style.display = 'none';
+            map.getCanvas().style.cursor = '';
+        }
+    });
+
+    // Map Click Handler for placing new POI
+    map.on('click', (e) => {
+        if (!isAddingMode || !isEditMode) return;
+        
+        pendingCoords = e.lngLat;
+        openModalForNew();
+        
+        isAddingMode = false;
+        addBtn.classList.remove('active');
+        addBtn.innerText = 'Add New POI';
+        statusText.style.display = 'none';
+        map.getCanvas().style.cursor = '';
+    });
+
+    function openModalForNew() {
+        modalTitleText.innerText = "Add New POI";
+        titleInput.value = '';
+        categoryInput.value = '';
+        descInput.value = '';
+        emojiInput.value = '';
+        colorPicker.value = '#8e44ad';
+        colorText.value = '#8e44ad';
+        editingPoiId = null;
+        deleteBtn.style.display = 'none';
+        modal.style.display = 'flex';
+    }
+
+    function openModalForEdit(poi) {
+        modalTitleText.innerText = "Edit POI";
+        titleInput.value = poi.title || '';
+        categoryInput.value = poi.category || '';
+        descInput.value = poi.desc || '';
+        emojiInput.value = poi.emoji || '';
+        colorPicker.value = poi.color || '#8e44ad';
+        colorText.value = poi.color || '#8e44ad';
+        editingPoiId = poi.id;
+        deleteBtn.style.display = 'block';
+        modal.style.display = 'flex';
+    }
+
+    // Save POI (New or Edited)
+    document.getElementById('save-poi-btn').addEventListener('click', () => {
+        let allPOIs = getCombinedPOIs();
+
+        const poiData = {
+            title: titleInput.value || 'Unnamed Location',
+            category: categoryInput.value || '',
+            desc: descInput.value || '',
+            emoji: emojiInput.value || '📍',
+            color: colorText.value || '#8e44ad'
+        };
+
+        if (editingPoiId) {
+            // Update existing
+            const index = allPOIs.findIndex(p => p.id === editingPoiId);
+            if (index !== -1) {
+                allPOIs[index] = { ...allPOIs[index], ...poiData };
+            }
+        } else if (pendingCoords) {
+            // Add new
+            poiData.id = Date.now().toString();
+            poiData.lng = pendingCoords.lng;
+            poiData.lat = pendingCoords.lat;
+            allPOIs.push(poiData);
+        }
+
+        // Overwrite local storage entirely to reflect edits/additions
+        saveLocalPOIs(allPOIs);
+
+        modal.style.display = 'none';
+        pendingCoords = null;
+        editingPoiId = null;
+        loadAndRenderPOIs();
+    });
+
+    // Delete POI
+    deleteBtn.addEventListener('click', () => {
+        if (!editingPoiId) return;
+        
+        if (confirm("Are you sure you want to delete this location?")) {
+            let allPOIs = getCombinedPOIs();
+            allPOIs = allPOIs.filter(p => p.id !== editingPoiId);
+            saveLocalPOIs(allPOIs);
+            
+            modal.style.display = 'none';
+            editingPoiId = null;
+            loadAndRenderPOIs();
+            hoverPopup.remove(); // Clear popup if hovering while deleting
+        }
+    });
+
+    // Cancel POI
+    document.getElementById('cancel-poi-btn').addEventListener('click', () => {
+        modal.style.display = 'none';
+        pendingCoords = null;
+        editingPoiId = null;
+    });
+
+    // Export Functionality
+    exportBtn.addEventListener('click', () => {
+        let allPOIs = getCombinedPOIs();
+        const exportString = `const savedPOIs = ${JSON.stringify(allPOIs, null, 4)};`;
+        
+        navigator.clipboard.writeText(exportString).then(() => {
+            alert('JavaScript variable copied to clipboard! Paste it over the savedPOIs variable in your code.');
+        }).catch(err => {
+            alert('Failed to copy to clipboard. Please check console.');
+            console.error(err);
+        });
+    });
+</script>
+
+</body>
+</html>

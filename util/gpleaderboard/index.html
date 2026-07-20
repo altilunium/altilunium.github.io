@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compact MotoGP Leaderboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0b0e11;
+            color: #e3e6e8;
+            margin: 0;
+            padding: 8px;
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-panel {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            height: 40px;
+            flex-shrink: 0;
+        }
+
+        textarea {
+            flex-grow: 1;
+            background-color: #1b2228;
+            border: 1px solid #29323c;
+            border-radius: 3px;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 4px 8px;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        textarea:focus { outline: none; border-color: #4a5a6a; }
+
+        button {
+            background-color: #1e62d0;
+            color: white;
+            border: none;
+            padding: 0 16px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 3px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        button:hover { background-color: #2b72e6; }
+
+        .table-container {
+            flex-grow: 1;
+            overflow: auto;
+            border: 1px solid #222a33;
+            border-radius: 3px;
+            background-color: #14181c;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 11px;
+        }
+
+        th {
+            background-color: #1a2129;
+            color: #9aa5b1;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-bottom: 2px solid #222a33;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        td {
+            padding: 3px 8px;
+            border-bottom: 1px solid #1f2730;
+            color: #cbd5e1;
+            white-space: nowrap;
+        }
+
+        tr:hover { background-color: #1a222b; }
+
+        .rank-col, .score-col { font-weight: bold; color: #ffffff; }
+        .na-val { color: #4e5d6c; }
+    </style>
+</head>
+<body>
+
+<div class="top-panel" id="topPanel">
+    <textarea id="excelInput" placeholder="Paste Excel data here... (Press Ctrl + . to hide/show this panel)"></textarea>
+    <button onclick="processData()">Calculate</button>
+</div>
+
+<div class="table-container">
+    <table id="leaderboardTable" style="display: none;">
+        <thead><tr id="tableHeader"></tr></thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    const motogpPoints = [25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === '.') {
+            const topPanel = document.getElementById('topPanel');
+            if (topPanel.style.display === 'none') {
+                topPanel.style.display = 'flex';
+            } else {
+                topPanel.style.display = 'none';
+            }
+        }
+    });
+
+    function processData() {
+        const inputData = document.getElementById('excelInput').value.trim();
+        if (!inputData) return;
+
+        const rows = inputData.split('\n').map(row => row.split('\t'));
+        if (rows.length === 0 || rows[0].length === 0) return;
+
+        const totalRows = rows.length;
+        const totalRaces = rows[0].length;
+        const driverData = {};
+
+        for (let raceIdx = 0; raceIdx < totalRaces; raceIdx++) {
+            for (let positionIdx = 0; positionIdx < totalRows; positionIdx++) {
+                if (!rows[positionIdx] || rows[positionIdx][raceIdx] === undefined) continue;
+                
+                const driverName = rows[positionIdx][raceIdx].trim();
+                if (driverName === "") continue;
+
+                if (!driverData[driverName]) {
+                    driverData[driverName] = {
+                        name: driverName,
+                        totalScore: 0,
+                        history: Array(totalRaces).fill('NA')
+                    };
+                }
+
+                driverData[driverName].history[raceIdx] = positionIdx + 1;
+
+                if (positionIdx < motogpPoints.length) {
+                    driverData[driverName].totalScore += motogpPoints[positionIdx];
+                }
+            }
+        }
+
+        const leaderboard = Object.values(driverData).sort((a, b) => b.totalScore - a.totalScore);
+
+        const headerRow = document.getElementById('tableHeader');
+        headerRow.innerHTML = '<th>Rank</th><th>Name</th><th>Score</th>';
+        for (let i = 1; i <= totalRaces; i++) headerRow.innerHTML += `<th>${i}</th>`;
+
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        leaderboard.forEach((driver, idx) => {
+            const row = document.createElement('tr');
+            let rowContent = `
+                <td class="rank-col">${idx + 1}</td>
+                <td>${driver.name}</td>
+                <td class="score-col">${driver.totalScore}</td>
+            `;
+
+            driver.history.forEach(pos => {
+                rowContent += pos === 'NA' ? `<td class="na-val">-</td>` : `<td>${pos}</td>`;
+            });
+
+            row.innerHTML = rowContent;
+            tableBody.appendChild(row);
+        });
+
+        document.getElementById('leaderboardTable').style.display = 'table';
+    }
+</script>
+
+</body>
+</html>

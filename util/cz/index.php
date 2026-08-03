@@ -18,7 +18,8 @@ if (!file_exists($indexFile)) {
         'boards' => ['b' => ['uri' => 'b', 'name' => 'Random']], 
         'threads' => [], 
         'archived' => [], 
-        'banned' => []
+        'banned' => [],
+        'readonly' => false
     ]));
 }
 
@@ -73,6 +74,11 @@ if (!isset($idx['boards'])) {
     }
     saveIndex($idx);
 }
+if (!isset($idx['readonly'])) {
+    $idx['readonly'] = false;
+    saveIndex($idx);
+}
+
 $is_admin = isset($_SESSION['is_admin']);
 $action = $_GET['action'] ?? 'front';
 $current_board = $_GET['board'] ?? array_key_first($idx['boards']);
@@ -95,6 +101,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($is_admin) {
+        if (isset($_POST['toggle_readonly'])) {
+            $idx['readonly'] = !($idx['readonly'] ?? false);
+            saveIndex($idx);
+            header("Location: ?board=$current_board"); exit;
+        }
         if (isset($_POST['create_board'])) {
             $uri = preg_replace('/[^a-z0-9]/', '', strtolower($_POST['board_uri']));
             $name = trim($_POST['board_name']);
@@ -130,6 +141,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['message'])) {
+        if (!empty($idx['readonly'])) {
+            die("<div style='padding:20px; font-family:sans-serif;'><h1>Board Closed</h1><p>The site is currently in read-only mode.</p></div>");
+        }
         $idx['last_id']++;
         $new_id = $idx['last_id'];
         $imagePath = null;
@@ -141,7 +155,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $post = [
             'id' => $new_id, 'uid' => $user_id, 'title' => $_POST['title'] ?? '',
             'message' => $_POST['message'], 'image' => $imagePath, 'time' => time(),
-            'is_op' => !isset($_POST['thread_id'])
+            'is_op' => !isset($_POST['thread_id']),
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
         ];
         savePost($post);
 
@@ -202,6 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .catalog-title { font-weight: bold; font-size: 0.95em; margin-bottom: 6px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent); }
         .catalog-teaser { font-size: 0.8em; color: #ccc; max-height: 3.6em; overflow: hidden; line-height: 1.2em; word-break: break-word; width: 100%; margin-bottom: 8px; }
         .catalog-meta { font-size: 0.75em; color: #aaa; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; width: 100%; }
+        .uid-info { display: none; background: #111; color: #ffb74d; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; margin: 0 4px; border: 1px solid #ffb74d; }
     </style>
 </head>
 <body>
@@ -213,6 +230,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php if ($is_admin): ?>
     <div class="admin-panel">
         <strong>Admin Control:</strong>
+        <form method="POST">
+            <button type="submit" name="toggle_readonly" style="background: <?= !empty($idx['readonly']) ? '#ff4444' : '#78c278' ?>; color: white; cursor: pointer;">
+                Site Status: <?= !empty($idx['readonly']) ? 'CLOSED (Read-Only)' : 'OPEN' ?>
+            </button>
+        </form>
         <form method="POST">
             <input type="text" name="board_uri" placeholder="URI (e.g. g)" size="5" required>
             <input type="text" name="board_name" placeholder="Board Name" required>
@@ -232,7 +254,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="?board=<?= htmlspecialchars($current_board) ?>&action=archive">Archive</a>
 </div>
 
-<?php if ($action === 'front' || $action === 'thread'): ?>
+<?php if (!empty($idx['readonly'])): ?>
+    <div style="text-align:center; padding:15px; background:var(--panel); max-width:500px; margin:0 auto 30px; border-radius:8px; border:1px solid #ff4444;">
+        <strong>Notice:</strong> The site is currently closed for posting (Read-Only Mode).
+    </div>
+<?php elseif ($action === 'front' || $action === 'thread'): ?>
     <form class="post-form" method="POST" enctype="multipart/form-data">
         <?php if ($action === 'thread'): ?>
             <input type="hidden" name="thread_id" value="<?= htmlspecialchars($_GET['id']) ?>">
@@ -302,7 +328,10 @@ if ($action === 'front') {
             if ($is_op && $p['title']) echo "<strong>" . htmlspecialchars($p['title']) . "</strong> ";
             
             if ($is_admin) {
-                echo " <span style='color:red;'>[UID: " . substr($p['uid'], 0, 8) . "]</span> ";
+                $p_ip = htmlspecialchars($p['ip'] ?? 'N/A');
+                $p_ua = htmlspecialchars($p['user_agent'] ?? 'N/A');
+                echo " <span style='color:red; cursor:pointer; text-decoration:underline;' onclick=\"toggleUidInfo('info_{$p['id']}')\">[UID: " . substr($p['uid'], 0, 8) . "]</span>";
+                echo "<span id='info_{$p['id']}' class='uid-info'>IP: {$p_ip} | UA: {$p_ua}</span> ";
                 echo "<form class='inline-form' method='POST'><input type='hidden' name='tid' value='{$tid}'><input type='hidden' name='pid' value='{$p['id']}'><button type='submit' name='delete_post' class='inline-btn'>[Delete]</button></form> ";
                 echo "<form class='inline-form' method='POST' onsubmit=\"return prompt('Ban Reason:');\"><input type='hidden' name='target_uid' value='{$p['uid']}'><input type='hidden' name='ban_reason' id='br_{$p['id']}'><button type='submit' name='ban_user' class='inline-btn' onclick=\"document.getElementById('br_{$p['id']}').value = prompt('Reason for ban?'); if(!document.getElementById('br_{$p['id']}').value) return false;\">[Ban User]</button></form>";
             }
@@ -318,7 +347,7 @@ if ($action === 'front') {
 ?>
 
 <div style="text-align:center; margin-top:50px; color:#666;">
-    <span onclick="document.getElementById('admin-modal').style.display='block'" style="cursor:pointer;">🔒</span>
+    📻📻📻📻📻<span onclick="document.getElementById('admin-modal').style.display='block'" style="cursor:pointer;">📻</span>📻
 </div>
 
 <div id="admin-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:var(--panel); padding:20px; border-radius:8px;">
@@ -329,6 +358,13 @@ if ($action === 'front') {
     </form>
 </div>
 <script>
+    function toggleUidInfo(id) {
+        let el = document.getElementById(id);
+        if (el) {
+            el.style.display = (el.style.display === 'inline-block') ? 'none' : 'inline-block';
+        }
+    }
+
     document.querySelectorAll('.quote').forEach(link => {
         link.addEventListener('click', function(e) {
             let targetId = this.getAttribute('href').substring(1);

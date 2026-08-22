@@ -74,6 +74,22 @@ let dbForum = loadStorage('wd_forum', {});
 let dbLogs = loadStorage('wd_logs', []);
 let dbItems = loadStorage('wd_items', {});
 
+let stickyPropertyEnabled = false;
+let stickyPropertyId = '';
+let stickyPropertyLabel = '';
+
+function toggleStickyProp() {
+    stickyPropertyEnabled = !stickyPropertyEnabled;
+    if (!stickyPropertyEnabled) {
+        stickyPropertyId = '';
+        stickyPropertyLabel = '';
+    }
+    const btn = document.getElementById('sticky-prop-btn');
+    if (btn) {
+        btn.style.background = stickyPropertyEnabled ? '#28a745' : '#6a737d';
+    }
+}
+
 let currentUserId = localStorage.getItem('wiki_user_id');
 if (!currentUserId) {
     currentUserId = SUPERUSER_ID;
@@ -426,10 +442,10 @@ function renderItemDetailsPage(container, itemId, showMatrix) {
                         <td class="matrix-col" style="text-align:center; cursor: grab; font-size:16px; color:#aaa; user-select: none;">☰</td>
                         <td class="matrix-col">
                             <button type="button" class="action-btn" onclick="toggleEditStatement(${idx})">[Edit Statement]</button>
-                            <button type="button" class="action-btn" onclick="deleteStatement('${itemId}', ${idx})"[Delete Assignment]</button>
+                            <button type="button" class="action-btn" onclick="deleteStatement('${itemId}', ${idx})">[Delete Statement]</button>
                         </td>
                     </tr>
-                    <tr id="edit-stmt-row-${idx}" class="matrix-col" style="display:none; background:#fafbfc;">
+                    <tr id="edit-stmt-row-${idx}" style="display:none; background:#fafbfc;">
                         <td colspan="4" style="padding:6px; border:1px solid #0366d6;">
                             <form onsubmit="handleEditStatement(event, '${itemId}', ${idx})" style="display:flex; flex-direction:column; gap:2px;">
                                 <div style="position:relative;">
@@ -531,9 +547,9 @@ function renderItemDetailsPage(container, itemId, showMatrix) {
             <h2>Append Structural Relational Statement Protocol</h2>
             <form onsubmit="handleAddStatement(event, '${itemId}')" style="display:flex; flex-direction:column; gap:2px; margin-top:6px;">
                 <div style="position:relative;">
-                    <label>Target Schema Property Element:</label>
-                    <input type="text" class="autocomplete-trigger" data-type="prop" placeholder="Search system configuration properties map..." required autocomplete="off">
-                    <input type="hidden" class="autocomplete-target" id="add-stmt-pid">
+                    <label>Target Schema Property Element: <button type="button" id="sticky-prop-btn" onclick="toggleStickyProp()" style="background:${stickyPropertyEnabled ? '#28a745' : '#6a737d'}; color:#fff; border:none; padding:1px 4px; border-radius:2px; cursor:pointer;">♻️</button></label>
+                    <input type="text" id="add-stmt-prop-label" class="autocomplete-trigger" data-type="prop" placeholder="Search system configuration properties map..." required autocomplete="off" value="${stickyPropertyEnabled ? escapeHtml(stickyPropertyLabel) : ''}">
+                    <input type="hidden" class="autocomplete-target" id="add-stmt-pid" value="${stickyPropertyEnabled ? escapeHtml(stickyPropertyId) : ''}">
                     <div class="ac-dropdown"></div>
                 </div>
                 <div style="margin:4px 0; border:1px dashed #ccc; padding:4px; background:#fff;">
@@ -658,6 +674,13 @@ function handleAddStatement(e, itemId) {
         if (!dbIndex.backlinks[targetId].includes(itemId)) dbIndex.backlinks[targetId].push(itemId);
     }
     saveStorage('wd_index', dbIndex);
+
+    if (stickyPropertyEnabled) {
+        stickyPropertyId = pId;
+        const propLabelInput = document.getElementById('add-stmt-prop-label');
+        if (propLabelInput) stickyPropertyLabel = propLabelInput.value;
+    }
+
     logActivity(currentUserId, 'add_statement', `Added claim to Q${itemId}`);
     navigateTo(`id=${itemId}`);
 }
@@ -753,7 +776,7 @@ function renderViewListPage(container, targetUserId, listName, editMode) {
                         <button onclick="rearrangeListItem('${targetUserId}', '${escapeHtml(listName)}', '${itId}', 'down')">▼</button>
                     </td>
                     <td>
-                        <button class="action-btn" onclick="removeListItem('${targetUserId}', '${escapeHtml(listName)}', '${itId}')"[Expel Element]</button>
+                        <button class="action-btn" onclick="removeListItem('${targetUserId}', '${escapeHtml(listName)}', '${itId}')">[Expel Element]</button>
                     </td>
                 `;
             }
@@ -1053,7 +1076,7 @@ function renderProfilePage(container) {
                                 <button onclick="rearrangeListItem('${currentUserId}', '${escapeHtml(lName)}', '${itId}', 'down')">▼</button>
                             </td>
                             <td>
-                                <button class="action-btn" onclick="removeListItem('${currentUserId}', '${escapeHtml(lName)}', '${itId}')"[Expel Element]</button>
+                                <button class="action-btn" onclick="removeListItem('${currentUserId}', '${escapeHtml(lName)}', '${itId}')">[Expel Element]</button>
                             </td>
                         </tr>
                     `;
@@ -1065,7 +1088,7 @@ function renderProfilePage(container) {
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <h3>📁 Compilation: ${escapeHtml(lName)} ${lData.is_public ? '<span class="badge">Public</span>' : '<span class="badge">Private</span>'}</h3>
                         <div style="margin-left:auto;">
-                            <button onclick="deleteList('${escapeHtml(lName)}')"[Purge Set List]</button>
+                            <button onclick="deleteList('${escapeHtml(lName)}')">[Purge Set List]</button>
                         </div>
                     </div>
                     <form onsubmit="handleAddItemToList(event, '${currentUserId}', '${escapeHtml(lName)}')" style="margin:4px 0; display:flex; flex-direction:column; gap:2px; background:#fff; padding:4px; border:1px solid #ccc;">

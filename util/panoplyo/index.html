@@ -1441,17 +1441,20 @@ function setupDragAndDrop(itemId) {
             if (!draggedRow) return;
             e.preventDefault();
             this.style.borderTop = ''; this.style.borderBottom = '';
+            
             if (this !== draggedRow) {
-                let allRows = Array.from(document.querySelectorAll('.draggable-row'));
-                let draggedIdx = allRows.indexOf(draggedRow);
-                let targetIdx = allRows.indexOf(this);
+                let draggedIdx = parseInt(draggedRow.getAttribute('data-idx'), 10);
+                let targetIdx = parseInt(this.getAttribute('data-idx'), 10);
+                
                 let rect = this.getBoundingClientRect();
                 let relY = e.clientY - rect.top;
                 if (relY >= rect.height / 2) targetIdx++;
 
                 let stmts = dbItems[itemId].statements;
                 let moved = stmts.splice(draggedIdx, 1)[0];
+                
                 if (targetIdx > draggedIdx) targetIdx--;
+                
                 stmts.splice(targetIdx, 0, moved);
 
                 saveStorage('wd_items', dbItems);

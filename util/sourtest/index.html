@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSM US Sourdough Vector Tile Explorer</title>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b131e;
+            color: #f1f5f9;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+        }
+
+        /* Unified Compact Sidebar Container */
+        #sidebar {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 320px;
+            max-height: calc(100vh - 32px);
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #sidebar.collapsed {
+            transform: translateX(calc(-100% + 44px));
+        }
+
+        /* Sidebar Header and Toggle Handle */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: rgba(30, 41, 59, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-top-left-radius: 9px;
+            border-top-right-radius: 9px;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-toggle-sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #f1f5f9;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: background 0.2s ease, transform 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .btn-toggle-sidebar:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #sidebar.collapsed .btn-toggle-sidebar {
+            transform: rotate(180deg);
+        }
+
+        /* Sidebar Body Container */
+        .sidebar-content {
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        #sidebar.collapsed .sidebar-content {
+            display: none;
+        }
+
+        /* HUD Status Card */
+        .hud-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .zoom-badge {
+            font-family: monospace;
+            font-weight: 700;
+            color: #38bdf8;
+            font-size: 13px;
+        }
+
+        .status-pill {
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-low { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .status-mid { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
+        .status-peak { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+
+        .btn-gps {
+            width: 100%;
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .btn-gps:hover {
+            background: #0369a1;
+        }
+
+        /* Section Titles */
+        .section-header {
+            font-size: 11px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Layer List Controls */
+        #layer-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 6px 8px;
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 3px 0;
+            font-size: 12px;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+
+        .layer-item input[type="checkbox"] {
+            accent-color: #38bdf8;
+            cursor: pointer;
+        }
+
+        .layer-color-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        /* Inspector Cards for Penetrated Objects */
+        #inspector-container {
+            max-height: 240px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .feature-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 8px 10px;
+        }
+
+        .feature-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .feature-card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #38bdf8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 170px;
+        }
+
+        .feature-card-badge {
+            font-size: 10px;
+            background: rgba(56, 189, 248, 0.15);
+            color: #7dd3fc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .feature-card-meta {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+
+        .tag-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .tag-table th, .tag-table td {
+            text-align: left;
+            padding: 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            word-break: break-all;
+        }
+
+        .tag-key {
+            color: #38bdf8;
+            font-weight: 600;
+            width: 40%;
+        }
+
+        .tag-val {
+            color: #e2e8f0;
+            font-family: monospace;
+        }
+
+        /* GPS Pulsing Dot Marker */
+        .gps-marker {
+            width: 16px;
+            height: 16px;
+            background-color: #38bdf8;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+            position: relative;
+        }
+
+        .gps-marker::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border: 2px solid #38bdf8;
+            border-radius: 50%;
+            animation: pulse 1.6s infinite ease-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        /* Notification Toast for Right-Click Actions */
+        #toast {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 640px) {
+            #sidebar {
+                width: calc(100vw - 32px);
+                max-height: 80vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">Sourdough Vector Explorer</span>
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Toggle Sidebar">◀</button>
+        </div>
+
+        <div class="sidebar-content">
+            <div class="hud-card">
+                <span class="zoom-badge" id="zoom-value">Z = 12.50</span>
+                <span class="status-pill status-mid" id="zoom-status">Mid Zoom</span>
+            </div>
+
+            <button class="btn-gps" onclick="zoomToGPS()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="8"></circle>
+                    <line x1="12" y1="2" x2="12" y2="6"></line>
+                    <line x1="12" y1="18" x2="12" y2="22"></line>
+                    <line x1="2" y1="12" x2="6" y2="12"></line>
+                    <line x1="18" y1="12" x2="22" y2="12"></line>
+                </svg>
+                Zoom to My GPS
+            </button>
+
+            <div>
+                <div class="section-header">
+                    <span>Layers</span>
+                    <label style="font-size: 10px; cursor: pointer; text-transform: none;">
+                        <input type="checkbox" id="toggle-all" checked onclick="toggleAllLayers(this)"> Select All
+                    </label>
+                </div>
+                <div id="layer-list" style="display:none"></div>
+            </div>
+
+            <div>
+                <div class="section-header">
+                    <span>Penetrated Features</span>
+                    <span id="inspector-meta" style="font-size: 10px; color: #94a3b8; text-transform: none;">0 detected</span>
+                </div>
+                <div id="inspector-container">
+                    <div style="color: #94a3b8; font-size: 12px; padding: 4px 0;">Click on map objects to inspect all overlapping features. Right click to hide layer.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <script>
+        // Complete Sourdough Vector Tile Schema Layer Definitions
+        const SOURDOUGH_LAYERS = [
+            { id: 'advertising', color: '#f43f5e', type: 'circle' },
+            { id: 'aerialways', color: '#38bdf8', type: 'line' },
+            { id: 'aeroways', color: '#e0e7ff', type: 'line' },
+            { id: 'amenities', color: '#f472b6', type: 'circle' },
+            { id: 'barriers', color: '#ef4444', type: 'line' },
+            { id: 'boundaries', color: '#38bdf8', type: 'line', minzoom: 0 },
+            { id: 'buildings', color: '#60a5fa', type: 'fill', minzoom: 13.5 },
+            { id: 'clubs', color: '#c084fc', type: 'circle' },
+            { id: 'craft', color: '#a78bfa', type: 'circle' },
+            { id: 'education', color: '#fbbf24', type: 'circle' },
+            { id: 'emergency', color: '#dc2626', type: 'circle' },
+            { id: 'geological', color: '#a3e635', type: 'circle' },
+            { id: 'healthcare', color: '#f43f5e', type: 'circle' },
+            { id: 'highways', color: '#0284c7', type: 'line', minzoom: 5 },
+            { id: 'historic', color: '#fb923c', type: 'circle' },
+            { id: 'landcover', color: '#10b981', type: 'fill', minzoom: 13 },
+            { id: 'landuse', color: '#059669', type: 'fill', minzoom: 18 },
+            { id: 'leisure', color: '#10b981', type: 'fill', minzoom: 13 },
+            { id: 'man_made', color: '#94a3b8', type: 'line' },
+            { id: 'military', color: '#7f1d1d', type: 'fill', minzoom: 13 },
+            { id: 'natural', color: '#22c55e', type: 'fill', minzoom: 13 },
+            { id: 'offices', color: '#818cf8', type: 'circle' },
+            { id: 'pistes', color: '#e2e8f0', type: 'line' },
+            { id: 'places', color: '#f8fafc', type: 'symbol', minzoom: 0 },
+            { id: 'power', color: '#f59e0b', type: 'line', minzoom: 13 },
+            { id: 'public_transport', color: '#06b6d4', type: 'line', minzoom: 13 },
+            { id: 'railways', color: '#ec4899', type: 'line', minzoom: 10 },
+            { id: 'routes', color: '#8b5cf6', type: 'line', minzoom: 18 },
+            { id: 'shops', color: '#facc15', type: 'circle' },
+            { id: 'sport', color: '#34d399', type: 'circle' },
+            { id: 'telecom', color: '#64748b', type: 'line' },
+            { id: 'tourism', color: '#f97316', type: 'circle' },
+            { id: 'waterways', color: '#0ea5e9', type: 'line', minzoom: 18 },
+            { id: 'worship', color: '#a855f7', type: 'circle' }
+        ];
+
+        let gpsMarker = null;
+
+        // Base MapLibre Style Specification
+        const mapStyle = {
+            version: 8,
+            sources: {
+                'sourdough': {
+                    type: 'vector',
+                    tiles: [
+                        'https://tiles.openstreetmap.us/vector/sourdough/{z}/{x}/{y}.mvt',
+                        'https://tiles.openstreetmap.us/vector/sourdough/{z}/{x}/{y}.pbf'
+                    ],
+                    minzoom: 0,
+                    maxzoom: 15
+                }
+            },
+            glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
+            layers: [
+                {
+                    id: 'background',
+                    type: 'background',
+                    paint: { 'background-color': '#0d1520' }
+                },
+                {
+                    id: 'sourdough-waterz',
+                    type: 'fill',
+                    source: 'sourdough',
+                    'source-layer': 'water',
+                    minzoom: 0,
+                    paint: {
+                        'fill-color': '#164e63',
+                        'fill-opacity': 0.85
+                    }
+                },
+                {
+                    id: 'sourdough-water',
+                    type: 'fill',
+                    source: 'sourdough',
+                    'source-layer': 'waterways',
+                    minzoom: 18,
+                    paint: {
+                        'fill-color': '#bae6fd',
+                        'fill-opacity': 0.85
+                    }
+                },
+                {
+                    id: 'sourdough-boundaries-base',
+                    type: 'line',
+                    source: 'sourdough',
+                    'source-layer': 'boundaries',
+                    minzoom: 0,
+                    paint: {
+                        'line-color': '#38bdf8',
+                        'line-width': ['interpolate', ['linear'], ['zoom'], 0, 0.5, 6, 2],
+                        'line-opacity': 0.0
+                    }
+                },
+                {
+                    id: 'sourdough-places-country',
+                    type: 'symbol',
+                    source: 'sourdough',
+                    'source-layer': 'places',
+                    minzoom: 0,
+                    maxzoom: 20,
+                    layout: {
+                        'text-field': ['get', 'name'],
+                        'text-size': ['interpolate', ['linear'], ['zoom'], 1, 10, 5, 15],
+                        'text-transform': 'uppercase',
+                        'text-font': ['Open Sans Bold']
+                    },
+                    paint: {
+                        'text-color': '#e0f2fe',
+                        'text-halo-color': '#0d1520',
+                        'text-halo-width': 1.5
+                    }
+                },
+                {
+                    id: 'sourdough-highways-major',
+                    type: 'line',
+                    source: 'sourdough',
+                    'source-layer': 'highways',
+                    minzoom: 13,
+                    paint: {
+                        'line-color': '#0284c7',
+                        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 2, 16, 1],
+                        'line-opacity': 0.4
+                    }
+                },
+                {
+                    id: 'sourdough-places-cities',
+                    type: 'symbol',
+                    source: 'sourdough',
+                    'source-layer': 'places',
+                    minzoom: 5,
+                    maxzoom: 13,
+                    layout: {
+                        'text-field': ['get', 'name'],
+                        'text-size': ['interpolate', ['linear'], ['zoom'], 5, 11, 12, 15],
+                        'text-font': ['Open Sans Regular']
+                    },
+                    paint: {
+                        'text-color': '#7dd3fc',
+                        'text-halo-color': '#0d1520',
+                        'text-halo-width': 1
+                    }
+                }
+            ]
+        };
+
+        // Add detail layers for each Sourdough schema category
+        SOURDOUGH_LAYERS.forEach(layer => {
+            const minZoomLevel = layer.minzoom !== undefined ? layer.minzoom : 13.5;
+            const layerId = `sourdough-layer-${layer.id}`;
+
+            if (layer.type === 'fill') {
+                mapStyle.layers.push({
+                    id: layerId,
+                    type: 'fill',
+                    source: 'sourdough',
+                    'source-layer': layer.id,
+                    minzoom: minZoomLevel,
+                    paint: {
+                        'fill-color': layer.color,
+                        'fill-opacity': 0.35,
+                        'fill-outline-color': layer.color
+                    }
+                });
+            } else if (layer.type === 'line') {
+                if (layer.id !== 'boundaries' && layer.id !== 'highways') {
+                    mapStyle.layers.push({
+                        id: layerId,
+                        type: 'line',
+                        source: 'sourdough',
+                        'source-layer': layer.id,
+                        minzoom: minZoomLevel,
+                        paint: {
+                            'line-color': layer.color,
+                            'line-width': 1.5,
+                            'line-opacity': 0.8
+                        }
+                    });
+                }
+            } else if (layer.type === 'circle') {
+                mapStyle.layers.push({
+                    id: layerId,
+                    type: 'circle',
+                    source: 'sourdough',
+                    'source-layer': layer.id,
+                    minzoom: minZoomLevel,
+                    paint: {
+                        'circle-radius': 4,
+                        'circle-color': layer.color,
+                        'circle-stroke-width': 1,
+                        'circle-stroke-color': '#ffffff'
+                    }
+                });
+            }
+        });
+
+        // Initialize MapLibre GL Map
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: mapStyle,
+            center: [-71.0589, 42.3601],
+            zoom: 1
+        });
+
+        map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+
+        // Populate Layer Toggle Checkboxes in Sidebar
+        const layerListContainer = document.getElementById('layer-list');
+        SOURDOUGH_LAYERS.forEach(layer => {
+            const item = document.createElement('label');
+            item.className = 'layer-item';
+            item.innerHTML = `
+                <input type="checkbox" checked id="chk-${layer.id}" onchange="toggleLayerVisibility('${layer.id}', this.checked)">
+                <span class="layer-color-dot" style="background-color: ${layer.color}"></span>
+                <span>${layer.id}</span>
+            `;
+            layerListContainer.appendChild(item);
+        });
+
+        // Update Zoom Level Indicator
+        map.on('zoom', updateZoomHUD);
+        map.on('load', updateZoomHUD);
+
+        function updateZoomHUD() {
+            const currentZoom = map.getZoom();
+            document.getElementById('zoom-value').innerText = `Z = ${currentZoom.toFixed(2)}`;
+
+            const statusEl = document.getElementById('zoom-status');
+            if (currentZoom < 5) {
+                statusEl.className = 'status-pill status-low';
+                statusEl.innerText = 'Low Zoom';
+            } else if (currentZoom < 13.5) {
+                statusEl.className = 'status-pill status-mid';
+                statusEl.innerText = 'Mid Zoom';
+            } else {
+                statusEl.className = 'status-pill status-peak';
+                statusEl.innerText = 'Peak Zoom';
+            }
+        }
+
+        // Toggle Layer Visibility Function
+        function toggleLayerVisibility(layerId, visible) {
+            const targetId = `sourdough-layer-${layerId}`;
+            if (map.getLayer(targetId)) {
+                map.setLayoutProperty(targetId, 'visibility', visible ? 'visible' : 'none');
+            }
+        }
+
+        // Master Toggle All Layers
+        function toggleAllLayers(masterCheckbox) {
+            SOURDOUGH_LAYERS.forEach(layer => {
+                const chk = document.getElementById(`chk-${layer.id}`);
+                if (chk) {
+                    chk.checked = masterCheckbox.checked;
+                    toggleLayerVisibility(layer.id, masterCheckbox.checked);
+                }
+            });
+        }
+
+        // Sidebar Collapse/Expand Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Cursor Change on Hover
+        map.on('mousemove', (e) => {
+            const features = map.queryRenderedFeatures(e.point);
+            map.getCanvas().style.cursor = features.length ? 'pointer' : '';
+        });
+
+        // Penetrating Click: Inspect ALL Overlapping Objects under Cursor
+        map.on('click', (e) => {
+            const features = map.queryRenderedFeatures(e.point);
+            const container = document.getElementById('inspector-container');
+            const metaEl = document.getElementById('inspector-meta');
+
+            if (!features || !features.length) {
+                metaEl.innerText = '0 detected';
+                container.innerHTML = '<div style="color:#94a3b8; font-size:12px; padding:4px 0;">Click on map objects to inspect all overlapping features. Right click to hide layer.</div>';
+                return;
+            }
+
+            metaEl.innerText = `${features.length} detected`;
+            container.innerHTML = '';
+
+            features.forEach((feature, index) => {
+                const props = feature.properties || {};
+                const layerName = feature.layer['source-layer'] || feature.layer.id;
+                const geomType = feature.geometry ? feature.geometry.type : 'Unknown';
+                const titleName = props.name || props.title || props.ref || `Object #${index + 1}`;
+
+                const card = document.createElement('div');
+                card.className = 'feature-card';
+
+                let html = `
+                    <div class="feature-card-header">
+                        <span class="feature-card-title">${escapeHtml(titleName)}</span>
+                        <span class="feature-card-badge">${escapeHtml(layerName)}</span>
+                    </div>
+                    <div class="feature-card-meta">Geometry: ${geomType}</div>
+                    <table class="tag-table">
+                        <thead><tr><th>Key</th><th>Value</th></tr></thead>
+                        <tbody>
+                `;
+
+                const keys = Object.keys(props);
+                if (keys.length === 0) {
+                    html += '<tr><td colspan="2" style="color:#94a3b8;">No properties available.</td></tr>';
+                } else {
+                    keys.forEach(key => {
+                        html += `<tr><td class="tag-key">${escapeHtml(key)}</td><td class="tag-val">${escapeHtml(String(props[key]))}</td></tr>`;
+                    });
+                }
+
+                html += '</tbody></table>';
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        });
+
+        // Right-Click Context Action: Hide all clicked layers under cursor
+        map.on('contextmenu', (e) => {
+            e.preventDefault();
+            const features = map.queryRenderedFeatures(e.point);
+            if (!features || !features.length) return;
+
+            const hiddenLayers = new Set();
+            features.forEach(f => {
+                const srcLayer = f.layer['source-layer'];
+                if (srcLayer) {
+                    hiddenLayers.add(srcLayer);
+                }
+            });
+
+            hiddenLayers.forEach(layerId => {
+                const chk = document.getElementById(`chk-${layerId}`);
+                if (chk) chk.checked = false;
+                toggleLayerVisibility(layerId, false);
+            });
+
+            if (hiddenLayers.size > 0) {
+                showToast(`Hidden layer(s): ${Array.from(hiddenLayers).join(', ')}`);
+            }
+        });
+
+        // Toast Notification Function
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // GPS Location Zoom Functionality
+        function zoomToGPS() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lng = position.coords.longitude;
+                    const lat = position.coords.latitude;
+
+                    map.flyTo({
+                        center: [lng, lat],
+                        zoom: 16.5,
+                        essential: true
+                    });
+
+                    if (gpsMarker) gpsMarker.remove();
+
+                    const el = document.createElement('div');
+                    el.className = 'gps-marker';
+
+                    gpsMarker = new maplibregl.Marker(el)
+                        .setLngLat([lng, lat])
+                        .addTo(map);
+                },
+                (error) => {
+                    alert(`GPS Error: ${error.message}`);
+                },
+                { enableHighAccuracy: true }
+            );
+        }
+    </script>
+</body>
+</html>

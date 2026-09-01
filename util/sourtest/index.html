@@ -400,7 +400,6 @@
             { id: 'amenities', color: '#f472b6', type: 'circle' },
             { id: 'barriers', color: '#ef4444', type: 'line' },
             { id: 'boundaries', color: '#38bdf8', type: 'line', minzoom: 0 },
-            { id: 'buildings', color: '#60a5fa', type: 'fill', minzoom: 13.5 },
             { id: 'clubs', color: '#c084fc', type: 'circle' },
             { id: 'craft', color: '#a78bfa', type: 'circle' },
             { id: 'education', color: '#fbbf24', type: 'circle' },
@@ -410,15 +409,12 @@
             { id: 'highways', color: '#0284c7', type: 'line', minzoom: 5 },
             { id: 'historic', color: '#fb923c', type: 'circle' },
             { id: 'landcover', color: '#10b981', type: 'fill', minzoom: 13 },
-            { id: 'landuse', color: '#059669', type: 'fill', minzoom: 18 },
             { id: 'leisure', color: '#10b981', type: 'fill', minzoom: 13 },
             { id: 'man_made', color: '#94a3b8', type: 'line' },
             { id: 'military', color: '#7f1d1d', type: 'fill', minzoom: 13 },
-            { id: 'natural', color: '#22c55e', type: 'fill', minzoom: 13 },
             { id: 'offices', color: '#818cf8', type: 'circle' },
             { id: 'pistes', color: '#e2e8f0', type: 'line' },
             { id: 'places', color: '#f8fafc', type: 'symbol', minzoom: 0 },
-            { id: 'power', color: '#f59e0b', type: 'line', minzoom: 13 },
             { id: 'public_transport', color: '#06b6d4', type: 'line', minzoom: 13 },
             { id: 'railways', color: '#ec4899', type: 'line', minzoom: 10 },
             { id: 'routes', color: '#8b5cf6', type: 'line', minzoom: 18 },
@@ -426,7 +422,6 @@
             { id: 'sport', color: '#34d399', type: 'circle' },
             { id: 'telecom', color: '#64748b', type: 'line' },
             { id: 'tourism', color: '#f97316', type: 'circle' },
-            { id: 'waterways', color: '#0ea5e9', type: 'line', minzoom: 18 },
             { id: 'worship', color: '#a855f7', type: 'circle' }
         ];
 
@@ -459,22 +454,17 @@
                     source: 'sourdough',
                     'source-layer': 'water',
                     minzoom: 0,
+                    filter: [
+        'all',
+        ['==', ['get', 'water'], 'ocean'],
+        ['==', ['get', 'salt'], 'yes']
+    ],
                     paint: {
                         'fill-color': '#164e63',
                         'fill-opacity': 0.85
                     }
                 },
-                {
-                    id: 'sourdough-water',
-                    type: 'fill',
-                    source: 'sourdough',
-                    'source-layer': 'waterways',
-                    minzoom: 18,
-                    paint: {
-                        'fill-color': '#bae6fd',
-                        'fill-opacity': 0.85
-                    }
-                },
+                
                 {
                     id: 'sourdough-boundaries-base',
                     type: 'line',
@@ -506,36 +496,23 @@
                         'text-halo-width': 1.5
                     }
                 },
+                
+
+
                 {
                     id: 'sourdough-highways-major',
                     type: 'line',
                     source: 'sourdough',
                     'source-layer': 'highways',
-                    minzoom: 13,
+                    minzoom: 7,
                     paint: {
                         'line-color': '#0284c7',
                         'line-width': ['interpolate', ['linear'], ['zoom'], 5, 2, 16, 1],
                         'line-opacity': 0.4
                     }
-                },
-                {
-                    id: 'sourdough-places-cities',
-                    type: 'symbol',
-                    source: 'sourdough',
-                    'source-layer': 'places',
-                    minzoom: 5,
-                    maxzoom: 13,
-                    layout: {
-                        'text-field': ['get', 'name'],
-                        'text-size': ['interpolate', ['linear'], ['zoom'], 5, 11, 12, 15],
-                        'text-font': ['Open Sans Regular']
-                    },
-                    paint: {
-                        'text-color': '#7dd3fc',
-                        'text-halo-color': '#0d1520',
-                        'text-halo-width': 1
-                    }
                 }
+
+
             ]
         };
 
@@ -572,32 +549,208 @@
                         }
                     });
                 }
-            } else if (layer.type === 'circle') {
+            } else if (layer.type === 'circle' ) {
+                console.log(layer)
                 mapStyle.layers.push({
                     id: layerId,
                     type: 'circle',
                     source: 'sourdough',
                     'source-layer': layer.id,
-                    minzoom: minZoomLevel,
+                    minzoom: 10,
+                    filter: ['==', ['geometry-type'], 'Point'],
                     paint: {
-                        'circle-radius': 4,
+                        'circle-radius': 3,
                         'circle-color': layer.color,
-                        'circle-stroke-width': 1,
+                        'circle-stroke-width': 0,
                         'circle-stroke-color': '#ffffff'
                     }
                 });
+
+
+                mapStyle.layers.push({
+    id: `${layerId}-labels`,
+    type: 'symbol',
+    source: 'sourdough',
+    'source-layer': layer.id,
+    minzoom: 14,
+    filter: [
+        'all',
+        ['==', ['geometry-type'], 'Point']
+    ],
+    layout: {
+        'text-field': [
+    'coalesce',
+    ['get', 'name'],
+    ['get', 'amenity'],
+    ['get', 'tourism'],
+    ['get', 'shop'],
+    ['get', 'office'],
+    ['get', 'emergency']
+],
+        'text-size': 12,
+        'text-font': ['Open Sans Regular'],
+        'text-offset': [0, 0.4],
+        'text-anchor': 'top'
+    },
+    paint: {
+        'text-color': '#ffffff',
+        'text-halo-color': '#0d1520',
+        'text-halo-width': 1
+    }
+});
+
+
             }
         });
+
+
+
+
+
+
+
+mapStyle.layers.push(
+                  
+
+
+                  {
+    id: 'sourdough-places-cities',
+    type: 'symbol',
+    source: 'sourdough',
+    'source-layer': 'places',
+    minzoom: 5,
+    maxzoom: 13,
+    'symbol-sort-key': 999999,
+    'text-allow-overlap': true,
+    'text-ignore-placement': true,
+
+    layout: {
+        'text-field': ['get', 'name'],
+
+        'text-size': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+
+            5, [
+                'match',
+                ['get', 'place'],
+
+                'city', 14,
+                'town', 12,
+
+                'suburb', 11,
+                'village', 11,
+
+                'quarter', 10,
+                'hamlet', 10,
+                'neighbourhood', 10,
+                'locality', 9,
+
+                10
+            ],
+
+            12, [
+                'match',
+                ['get', 'place'],
+
+                'city', 19,
+                'town', 16,
+
+                'suburb', 15,
+                'village', 15,
+
+                'quarter', 13,
+                'hamlet', 13,
+                'neighbourhood', 13,
+                'locality', 12,
+
+                13
+            ]
+        ],
+
+        'text-font': ['Open Sans Regular'],
+
+        'text-max-width': 10,
+        'text-padding': 2
+    },
+
+    paint: {
+        'text-color': [
+            'match',
+            ['get', 'place'],
+
+            'city', '#fbbf24',
+            'town', '#7dd3fc',
+
+            'suburb', '#a7f3d0',
+            'village', '#a7f3d0',
+
+            'quarter', '#cbd5e1',
+            'hamlet', '#cbd5e1',
+            'neighbourhood', '#cbd5e1',
+            'locality', '#94a3b8',
+
+            '#ffffff'
+        ],
+
+        'text-halo-color': '#0d1520',
+
+        'text-halo-width': [
+            'match',
+            ['get', 'place'],
+
+            'city', 2,
+            'town', 1.5,
+
+            'suburb', 1,
+            'village', 1,
+
+            'quarter', 1,
+            'hamlet', 1,
+            'neighbourhood', 1,
+            'locality', 1,
+
+            1
+        ],
+
+        'text-halo-blur': 0
+    }
+}
+  
+
+
+
+                );
+
+
+
+
+
+
+
+
 
         // Initialize MapLibre GL Map
         const map = new maplibregl.Map({
             container: 'map',
             style: mapStyle,
-            center: [-71.0589, 42.3601],
+            center: [0,0],
             zoom: 1
         });
 
         map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+        map.addControl(
+    new maplibregl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: false,
+        showUserLocation: true,
+        showAccuracyCircle: false
+    }),
+    'bottom-right'
+);
 
         // Populate Layer Toggle Checkboxes in Sidebar
         const layerListContainer = document.getElementById('layer-list');

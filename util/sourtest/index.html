@@ -572,7 +572,7 @@
     type: 'symbol',
     source: 'sourdough',
     'source-layer': layer.id,
-    minzoom: 14,
+    minzoom: 15,
     filter: [
         'all',
         ['==', ['geometry-type'], 'Point']
@@ -585,7 +585,8 @@
     ['get', 'tourism'],
     ['get', 'shop'],
     ['get', 'office'],
-    ['get', 'emergency']
+    ['get', 'emergency'],
+    ['get', 'advertising']
 ],
         'text-size': 12,
         'text-font': ['Open Sans Regular'],

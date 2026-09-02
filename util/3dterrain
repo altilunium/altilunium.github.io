@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Mapterhorn Viewer</title>
+    
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .control-panel {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 320px;
+            backdrop-filter: blur(8px);
+        }
+        .control-panel h2 {
+            font-size: 16px;
+            color: #222;
+        }
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus {
+            border-color: #0066cc;
+        }
+        button {
+            padding: 8px 14px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0052a3;
+        }
+        .coordinates-display {
+            font-size: 11px;
+            color: #555;
+            background: #f4f4f5;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #e4e4e7;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="control-panel">
+        <h2>3D Terrain Viewer</h2>
+        <form id="jumpForm">
+            <div class="input-group">
+                <input type="text" id="coordInput" placeholder="Lat, Lng (e.g. 27.79574, 84.95648)" required />
+                <button type="submit">Jump</button>
+            </div>
+        </form>
+        <div class="coordinates-display" id="currentPos">
+            Lat, Lng: 0.0000, 0.0000<br>
+            Pitch: 60° | Pitch/Rotate using Right Click + Drag
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+        const TILEJSON_URL = 'https://tiles.mapterhorn.com/tilejson.json';
+        const SATELLITE_TILE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
+        let map;
+
+        async function initMap() {
+            map = new maplibregl.Map({
+                container: 'map',
+                style: {
+                    version: 8,
+                    sources: {
+                        'satellite': {
+                            type: 'raster',
+                            tiles: [SATELLITE_TILE],
+                            tileSize: 256,
+                            attribution: 'Esri, Maxar, Earthstar Geographics'
+                        },
+                        'mapterhorn-dem': {
+                            type: 'raster-dem',
+                            url: TILEJSON_URL,
+                            tileSize: 512,
+                            encoding: 'terrarium'
+                        }
+                    },
+                    layers: [
+                        {
+                            id: 'satellite-layer',
+                            type: 'raster',
+                            source: 'satellite'
+                        },
+                        {
+                            id: 'hillshade-layer',
+                            type: 'hillshade',
+                            source: 'mapterhorn-dem',
+                            paint: {
+                                'hillshade-exaggeration': 0.3
+                            }
+                        }
+                    ],
+                    terrain: {
+                        source: 'mapterhorn-dem',
+                        exaggeration: 1.2
+                    },
+                    sky: {}
+                },
+                center: [84.9564864, 27.7957472],
+                zoom: 13,
+                pitch: 65,
+                bearing: -20,
+                maxPitch: 85
+            });
+
+            map.addControl(new maplibregl.NavigationControl({
+                visualizePitch: true,
+                showCompass: true,
+                showZoom: true
+            }));
+
+            map.addControl(new maplibregl.TerrainControl({
+                source: 'mapterhorn-dem',
+                exaggeration: 1.2
+            }));
+
+            const currentPosDisplay = document.getElementById('currentPos');
+
+            function updatePositionDisplay() {
+                const center = map.getCenter();
+                const pitch = map.getPitch().toFixed(0);
+                const zoom = map.getZoom().toFixed(1);
+                currentPosDisplay.innerHTML = `
+                    Lat, Lng: ${center.lat.toFixed(6)}, ${center.lng.toFixed(6)}<br>
+                    Zoom: ${zoom} | Pitch: ${pitch}°
+                `;
+            }
+
+            map.on('move', updatePositionDisplay);
+            updatePositionDisplay();
+
+            document.getElementById('jumpForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const inputVal = document.getElementById('coordInput').value.trim();
+                
+                // Parse "Lat, Lng" or "Lat Lng" or "Lat,Lng"
+                const coords = inputVal.split(/[\s,]+/).map(Number);
+
+                if (coords.length >= 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+                    const lat = coords[0];
+                    const lng = coords[1];
+
+                    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                        map.flyTo({
+                            center: [lng, lat],
+                            zoom: 14,
+                            pitch: 65,
+                            essential: true,
+                            duration: 2500
+                        });
+                    } else {
+                        alert('Coordinates out of range. Latitude must be -90 to 90 and Longitude -180 to 180.');
+                    }
+                } else {
+                    alert('Invalid format! Please enter coordinates as: Latitude, Longitude (e.g. 27.7957472, 84.9564864)');
+                }
+            });
+        }
+
+        initMap();
+    </script>
+</body>
+</html>

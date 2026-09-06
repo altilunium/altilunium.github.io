@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photon OSM Search & Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  body { 
+    margin: 0; 
+    display: flex; 
+    height: 100vh; 
+    font-family: system-ui, -apple-system, sans-serif; 
+    background-color: #fcfcfc;
+  }
+  #sidebar { 
+    width: 400px; 
+    display: flex; 
+    flex-direction: column; 
+    padding: 1rem; 
+    box-sizing: border-box; 
+    border-right: 1px solid #e5e7eb; 
+    background: white; 
+    z-index: 1000; 
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+  }
+  #map { 
+    flex: 1; 
+    z-index: 1; 
+  }
+  .search-box { 
+    margin-bottom: 0.5rem; 
+  }
+  input[type="text"] { 
+    width: 100%; 
+    box-sizing: border-box;
+    padding: 0.85rem; 
+    border: 1px solid #d1d5db; 
+    border-radius: 6px; 
+    font-size: 1rem; 
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .hint-text {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+  }
+  #scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+  #results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .result-item { 
+    padding: 1rem; 
+    border: 1px solid #e5e7eb; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    background: white;
+    transition: all 0.2s; 
+  }
+  .result-item:hover, .result-item.active { 
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+  }
+  .result-title { 
+    font-weight: 600; 
+    color: #111827;
+    margin-bottom: 0.35rem; 
+  }
+  .result-context { 
+    font-size: 0.875rem; 
+    color: #4b5563; 
+  }
+  #more-btn { 
+    width: 100%; 
+    margin-top: 1rem; 
+    padding: 0.85rem;
+    background: #f3f4f6; 
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: none; 
+  }
+  #more-btn:hover { 
+    background: #e5e7eb; 
+  }
+  .toast { 
+    position: fixed; 
+    bottom: 20px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    background: #1f2937; 
+    color: white; 
+    padding: 0.75rem 1.5rem; 
+    border-radius: 9999px; 
+    font-size: 0.875rem;
+    display: none; 
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    z-index: 2000;
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Type to search places..." autocomplete="off">
+  </div>
+  <div class="hint-text">Click to view on map. Right-click to copy coordinates.</div>
+  
+  <div id="scroll-area">
+    <div id="results-container"></div>
+    <button id="more-btn">Load More Results</button>
+  </div>
+</div>
+
+<div id="map"></div>
+<div id="toast" class="toast">Copied to clipboard!</div>
+
+<script>
+  const map = L.map('map').setView([0, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  let currentMarker = null;
+  let allResults = [];
+  let displayedCount = 0;
+  const resultsPerLoad = 10;
+  let typingTimer;
+  
+  const searchInput = document.getElementById('search-input');
+  const resultsContainer = document.getElementById('results-container');
+  const moreBtn = document.getElementById('more-btn');
+  const toast = document.getElementById('toast');
+
+  async function performSearch() {
+    const query = searchInput.value.trim();
+    if (!query) {
+      resultsContainer.innerHTML = '';
+      moreBtn.style.display = 'none';
+      return;
+    }
+
+    resultsContainer.innerHTML = '<p style="color: #6b7280;">Searching...</p>';
+    moreBtn.style.display = 'none';
+    displayedCount = 0;
+    allResults = [];
+
+    try {
+      const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=50`);
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        resultsContainer.innerHTML = '';
+        allResults = data.features;
+        renderMore();
+      } else {
+        resultsContainer.innerHTML = '<p style="color: #6b7280;">No results found.</p>';
+      }
+    } catch (error) {
+      resultsContainer.innerHTML = '<p style="color: #ef4444;">Network error fetching data.</p>';
+    }
+  }
+
+  function renderMore() {
+    const slice = allResults.slice(displayedCount, displayedCount + resultsPerLoad);
+    
+    slice.forEach((feature, index) => {
+      const props = feature.properties;
+      const coords = feature.geometry.coordinates; 
+      const lat = coords[1];
+      const lon = coords[0];
+      const gmapsFormat = `${lat}, ${lon}`;
+
+      const item = document.createElement('div');
+      item.className = 'result-item';
+      
+      const titleText = props.name || 'Unnamed Location';
+      const contextParts = [props.street, props.city, props.state, props.country].filter(Boolean).join(', ');
+
+      item.innerHTML = `
+        <div class="result-title">${titleText}</div>
+        <div class="result-context">${contextParts}</div>
+      `;
+
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.result-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        
+        map.flyTo([lat, lon], 15, { duration: 1.5 });
+        
+        if (currentMarker) map.removeLayer(currentMarker);
+        currentMarker = L.marker([lat, lon]).addTo(map)
+          .bindPopup(`<b>${titleText}</b><br>${contextParts}`)
+          .openPopup();
+      });
+
+      item.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(gmapsFormat).then(() => {
+          showToast(`Copied: ${gmapsFormat}`);
+        });
+      });
+
+      resultsContainer.appendChild(item);
+    });
+
+    displayedCount += slice.length;
+    moreBtn.style.display = (displayedCount < allResults.length) ? 'block' : 'none';
+  }
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2500);
+  }
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(performSearch, 400);
+  });
+
+  moreBtn.addEventListener('click', renderMore);
+</script>
+</body>
+</html>

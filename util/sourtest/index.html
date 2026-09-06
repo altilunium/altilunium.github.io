@@ -763,6 +763,14 @@
             'bottom-right'
         );
 
+        map.addControl(
+    new maplibregl.AttributionControl({
+        compact: true,
+        customAttribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank">Map data from OpenStreetMap</a>'
+    }),
+    'top-right'
+);
+
         const layerListContainer = document.getElementById('layer-list');
         SOURDOUGH_LAYERS.forEach(layer => {
             const item = document.createElement('label');

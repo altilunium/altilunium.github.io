@@ -161,6 +161,42 @@
             background: #0369a1;
         }
 
+        /* Coordinate Jump Additions */
+        .coord-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .coord-input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #f1f5f9;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .coord-input::placeholder {
+            color: #64748b;
+        }
+
+        .btn-jump {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-jump:hover {
+            background: #059669;
+        }
+
         /* Section Titles */
         .section-header {
             font-size: 11px;
@@ -366,6 +402,12 @@
                 Zoom to My GPS
             </button>
 
+            <!-- Coordinate Input Group Added Here -->
+            <div class="coord-input-group">
+                <input type="text" id="coord-input" placeholder="e.g. 48.2061, 16.3666" class="coord-input">
+                <button onclick="jumpToCoordinate()" class="btn-jump">Jump</button>
+            </div>
+
             <div>
                 <div class="section-header">
                     <span>Layers</span>
@@ -455,10 +497,10 @@
                     'source-layer': 'water',
                     minzoom: 0,
                     filter: [
-        'all',
-        ['==', ['get', 'water'], 'ocean'],
-        ['==', ['get', 'salt'], 'yes']
-    ],
+                        'all',
+                        ['==', ['get', 'water'], 'ocean'],
+                        ['==', ['get', 'salt'], 'yes']
+                    ],
                     paint: {
                         'fill-color': '#164e63',
                         'fill-opacity': 0.85
@@ -497,8 +539,6 @@
                     }
                 },
                 
-
-
                 {
                     id: 'sourdough-highways-major',
                     type: 'line',
@@ -511,8 +551,6 @@
                         'line-opacity': 0.4
                     }
                 }
-
-
             ]
         };
 
@@ -550,7 +588,6 @@
                     });
                 }
             } else if (layer.type === 'circle' ) {
-                console.log(layer)
                 mapStyle.layers.push({
                     id: layerId,
                     type: 'circle',
@@ -566,171 +603,127 @@
                     }
                 });
 
-
                 mapStyle.layers.push({
-    id: `${layerId}-labels`,
-    type: 'symbol',
-    source: 'sourdough',
-    'source-layer': layer.id,
-    minzoom: 15,
-    filter: [
-        'all',
-        ['==', ['geometry-type'], 'Point']
-    ],
-    layout: {
-        'text-field': [
-    'coalesce',
-    ['get', 'name'],
-    ['get', 'amenity'],
-    ['get', 'tourism'],
-    ['get', 'shop'],
-    ['get', 'office'],
-    ['get', 'emergency'],
-    ['get', 'advertising']
-],
-        'text-size': 12,
-        'text-font': ['Open Sans Regular'],
-        'text-offset': [0, 0.4],
-        'text-anchor': 'top'
-    },
-    paint: {
-        'text-color': '#ffffff',
-        'text-halo-color': '#0d1520',
-        'text-halo-width': 1
-    }
-});
-
-
+                    id: `${layerId}-labels`,
+                    type: 'symbol',
+                    source: 'sourdough',
+                    'source-layer': layer.id,
+                    minzoom: 15,
+                    filter: [
+                        'all',
+                        ['==', ['geometry-type'], 'Point']
+                    ],
+                    layout: {
+                        'text-field': [
+                            'coalesce',
+                            ['get', 'name'],
+                            ['get', 'amenity'],
+                            ['get', 'tourism'],
+                            ['get', 'shop'],
+                            ['get', 'office'],
+                            ['get', 'emergency'],
+                            ['get', 'advertising']
+                        ],
+                        'text-size': 12,
+                        'text-font': ['Open Sans Regular'],
+                        'text-offset': [0, 0.4],
+                        'text-anchor': 'top'
+                    },
+                    paint: {
+                        'text-color': '#ffffff',
+                        'text-halo-color': '#0d1520',
+                        'text-halo-width': 1
+                    }
+                });
             }
         });
 
+        mapStyle.layers.push({
+            id: 'sourdough-places-cities',
+            type: 'symbol',
+            source: 'sourdough',
+            'source-layer': 'places',
+            minzoom: 5,
+            maxzoom: 13,
+            'symbol-sort-key': 999999,
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
 
+            layout: {
+                'text-field': ['get', 'name'],
 
+                'text-size': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
 
+                    5, [
+                        'match',
+                        ['get', 'place'],
+                        'city', 14,
+                        'town', 12,
+                        'suburb', 11,
+                        'village', 11,
+                        'quarter', 10,
+                        'hamlet', 10,
+                        'neighbourhood', 10,
+                        'locality', 9,
+                        10
+                    ],
 
+                    12, [
+                        'match',
+                        ['get', 'place'],
+                        'city', 19,
+                        'town', 16,
+                        'suburb', 15,
+                        'village', 15,
+                        'quarter', 13,
+                        'hamlet', 13,
+                        'neighbourhood', 13,
+                        'locality', 12,
+                        13
+                    ]
+                ],
 
+                'text-font': ['Open Sans Regular'],
+                'text-max-width': 10,
+                'text-padding': 2
+            },
 
-mapStyle.layers.push(
-                  
+            paint: {
+                'text-color': [
+                    'match',
+                    ['get', 'place'],
+                    'city', '#fbbf24',
+                    'town', '#7dd3fc',
+                    'suburb', '#a7f3d0',
+                    'village', '#a7f3d0',
+                    'quarter', '#cbd5e1',
+                    'hamlet', '#cbd5e1',
+                    'neighbourhood', '#cbd5e1',
+                    'locality', '#94a3b8',
+                    '#ffffff'
+                ],
 
+                'text-halo-color': '#0d1520',
 
-                  {
-    id: 'sourdough-places-cities',
-    type: 'symbol',
-    source: 'sourdough',
-    'source-layer': 'places',
-    minzoom: 5,
-    maxzoom: 13,
-    'symbol-sort-key': 999999,
-    'text-allow-overlap': true,
-    'text-ignore-placement': true,
-
-    layout: {
-        'text-field': ['get', 'name'],
-
-        'text-size': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-
-            5, [
-                'match',
-                ['get', 'place'],
-
-                'city', 14,
-                'town', 12,
-
-                'suburb', 11,
-                'village', 11,
-
-                'quarter', 10,
-                'hamlet', 10,
-                'neighbourhood', 10,
-                'locality', 9,
-
-                10
-            ],
-
-            12, [
-                'match',
-                ['get', 'place'],
-
-                'city', 19,
-                'town', 16,
-
-                'suburb', 15,
-                'village', 15,
-
-                'quarter', 13,
-                'hamlet', 13,
-                'neighbourhood', 13,
-                'locality', 12,
-
-                13
-            ]
-        ],
-
-        'text-font': ['Open Sans Regular'],
-
-        'text-max-width': 10,
-        'text-padding': 2
-    },
-
-    paint: {
-        'text-color': [
-            'match',
-            ['get', 'place'],
-
-            'city', '#fbbf24',
-            'town', '#7dd3fc',
-
-            'suburb', '#a7f3d0',
-            'village', '#a7f3d0',
-
-            'quarter', '#cbd5e1',
-            'hamlet', '#cbd5e1',
-            'neighbourhood', '#cbd5e1',
-            'locality', '#94a3b8',
-
-            '#ffffff'
-        ],
-
-        'text-halo-color': '#0d1520',
-
-        'text-halo-width': [
-            'match',
-            ['get', 'place'],
-
-            'city', 2,
-            'town', 1.5,
-
-            'suburb', 1,
-            'village', 1,
-
-            'quarter', 1,
-            'hamlet', 1,
-            'neighbourhood', 1,
-            'locality', 1,
-
-            1
-        ],
-
-        'text-halo-blur': 0
-    }
-}
-  
-
-
-
-                );
-
-
-
-
-
-
-
-
+                'text-halo-width': [
+                    'match',
+                    ['get', 'place'],
+                    'city', 2,
+                    'town', 1.5,
+                    'suburb', 1,
+                    'village', 1,
+                    'quarter', 1,
+                    'hamlet', 1,
+                    'neighbourhood', 1,
+                    'locality', 1,
+                    1
+                ],
+                'text-halo-blur': 0
+            }
+        });
 
         // Initialize MapLibre GL Map
         const map = new maplibregl.Map({
@@ -742,16 +735,16 @@ mapStyle.layers.push(
 
         map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
         map.addControl(
-    new maplibregl.GeolocateControl({
-        positionOptions: {
-            enableHighAccuracy: true
-        },
-        trackUserLocation: false,
-        showUserLocation: true,
-        showAccuracyCircle: false
-    }),
-    'bottom-right'
-);
+            new maplibregl.GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true
+                },
+                trackUserLocation: false,
+                showUserLocation: true,
+                showAccuracyCircle: false
+            }),
+            'bottom-right'
+        );
 
         // Populate Layer Toggle Checkboxes in Sidebar
         const layerListContainer = document.getElementById('layer-list');
@@ -939,6 +932,27 @@ mapStyle.layers.push(
                 },
                 { enableHighAccuracy: true }
             );
+        }
+
+        // Coordinate Jump Functionality
+        function jumpToCoordinate() {
+            const input = document.getElementById('coord-input').value;
+            const coords = input.split(',').map(c => parseFloat(c.trim()));
+            
+            if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+                const lat = coords[0];
+                const lng = coords[1];
+                
+                map.flyTo({
+                    center: [lng, lat],
+                    zoom: 15,
+                    essential: true
+                });
+                
+                showToast(`Navigated to ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+            } else {
+                showToast('Invalid format. Please use: Latitude, Longitude');
+            }
         }
     </script>
 </body>

@@ -74,9 +74,14 @@ let dbForum = loadStorage('wd_forum', {});
 let dbLogs = loadStorage('wd_logs', []);
 let dbItems = loadStorage('wd_items', {});
 
-let stickyPropertyEnabled = false;
-let stickyPropertyId = '';
-let stickyPropertyLabel = '';
+let stickyData = loadStorage('wd_sticky_prop', { enabled: false, id: '', label: '' });
+let stickyPropertyEnabled = stickyData.enabled;
+let stickyPropertyId = stickyData.id;
+let stickyPropertyLabel = stickyData.label;
+
+function saveStickyState() {
+    saveStorage('wd_sticky_prop', { enabled: stickyPropertyEnabled, id: stickyPropertyId, label: stickyPropertyLabel });
+}
 
 function toggleStickyProp() {
     stickyPropertyEnabled = !stickyPropertyEnabled;
@@ -84,6 +89,7 @@ function toggleStickyProp() {
         stickyPropertyId = '';
         stickyPropertyLabel = '';
     }
+    saveStickyState();
     const btn = document.getElementById('sticky-prop-btn');
     if (btn) {
         btn.style.background = stickyPropertyEnabled ? '#28a745' : '#6a737d';
@@ -545,7 +551,7 @@ function renderItemDetailsPage(container, itemId, showMatrix) {
 
         <div class="footer-section">
             <h2>Append Structural Relational Statement Protocol</h2>
-            <form onsubmit="handleAddStatement(event, '${itemId}')" style="display:flex; flex-direction:column; gap:2px; margin-top:6px;">
+            <form id="comm" onsubmit="handleAddStatement(event, '${itemId}')" style="display:flex; flex-direction:column; gap:2px; margin-top:6px;">
                 <div style="position:relative;">
                     <label>Target Schema Property Element: <button type="button" id="sticky-prop-btn" onclick="toggleStickyProp()" style="background:${stickyPropertyEnabled ? '#28a745' : '#6a737d'}; color:#fff; border:none; padding:1px 4px; border-radius:2px; cursor:pointer;">♻️</button></label>
                     <input type="text" id="add-stmt-prop-label" class="autocomplete-trigger" data-type="prop" placeholder="Search system configuration properties map..." required autocomplete="off" value="${stickyPropertyEnabled ? escapeHtml(stickyPropertyLabel) : ''}">
@@ -557,9 +563,12 @@ function renderItemDetailsPage(container, itemId, showMatrix) {
                     <label style="margin-left:8px;"><input type="radio" name="add_value_mode" value="link_internal" onchange="toggleValueInputs(this)"> Link Node To Internal Database Entity</label>
                     <label style="margin-left:8px;"><input type="radio" name="add_value_mode" value="link_wikidata" onchange="toggleValueInputs(this)"> Link Node To Wikidata Items</label>
                 </div>
+                
                 <div id="wrapper-value-text">
-                    <textarea id="add-stmt-text" rows="2" placeholder="Enter alphanumeric text statement or external hyperlink structure..."></textarea>
+                    <textarea id="add-stmt-text" rows="2" placeholder="Enter alphanumeric text statement or external hyperlink structure..." onkeydown="if(event.shiftKey && event.key === 'Enter') { event.preventDefault(); handleAddStatement(event, '${itemId}'); }"></textarea>
                 </div>
+
+
                 <div id="wrapper-value-link" style="display:none; position:relative;">
                     <input type="text" class="autocomplete-trigger" data-type="item" placeholder="Search item nodes database by name mapping..." autocomplete="off">
                     <input type="hidden" class="autocomplete-target" id="add-stmt-internal">
@@ -679,10 +688,15 @@ function handleAddStatement(e, itemId) {
         stickyPropertyId = pId;
         const propLabelInput = document.getElementById('add-stmt-prop-label');
         if (propLabelInput) stickyPropertyLabel = propLabelInput.value;
+        saveStickyState();
     }
-
     logActivity(currentUserId, 'add_statement', `Added claim to Q${itemId}`);
     navigateTo(`id=${itemId}`);
+
+    setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+    }, 50);
+    document.getElementById("add-stmt-text").focus();
 }
 
 function handleEditStatement(e, itemId, indexPos) {
@@ -1401,6 +1415,10 @@ function bindAutocompletes() {
         });
     });
 }
+
+
+
+
 
 function setupDragAndDrop(itemId) {
     let draggedRow = null;

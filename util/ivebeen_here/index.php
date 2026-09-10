@@ -500,7 +500,7 @@ if (isset($_GET['api'])) {
     --danger: #ef4444;
     --danger-hover: #dc2626;
     --bg-main: #0f172a;
-    --panel-bg: rgba(255, 255, 255, 0.92);
+    --panel-bg: rgba(255, 255, 255, 0.94);
     --border-color: #e2e8f0;
     --text-primary: #0f172a;
     --text-muted: #64748b;
@@ -522,29 +522,46 @@ if (isset($_GET['api'])) {
   .btn-auth:hover { background: var(--primary-hover); }
   .btn-auth.logout { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
   .btn-auth.logout:hover { background: var(--danger); color: #fff; }
+  
+  .btn-clear { background: rgba(100, 116, 139, 0.3); color: #f8fafc; border: 1px solid rgba(255,255,255,0.2); padding: 7px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-right: 4px; }
+  .btn-clear:hover { background: #64748b; }
 
   #main-container { position: absolute; top: 56px; bottom: 0; left: 0; right: 0; }
   #map { height: 100%; width: 100%; z-index: 1; }
 
-  /* Search Card UI */
-  .search-card {
-    position: absolute; top: 16px; left: 16px; z-index: 1000; width: 360px; max-width: calc(100vw - 32px);
-    max-height: calc(100vh - 120px); display: flex; flex-direction: column; background: var(--panel-bg);
+  /* Google Maps Style Unified Side Panel */
+  .main-panel {
+    position: absolute; top: 16px; left: 16px; z-index: 1000; width: 380px; max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 88px); display: flex; flex-direction: column; background: var(--panel-bg);
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15); overflow: hidden; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .search-header { padding: 12px 14px; background: rgba(255, 255, 255, 0.8); border-bottom: 1px solid var(--border-color); }
-  .search-input-wrapper { position: relative; display: flex; align-items: center; }
+
+  .search-header { padding: 12px 14px; background: rgba(255, 255, 255, 0.85); border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+  .search-input-wrapper { position: relative; display: flex; align-items: center; gap: 6px; }
   .search-icon { position: absolute; left: 12px; width: 18px; height: 18px; fill: #64748b; pointer-events: none; }
   input[type="text"].search-input { 
     width: 100%; padding: 10px 12px 10px 38px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; transition: all 0.2s; flex: 1; color: var(--text-primary);
   }
   input[type="text"].search-input:focus { border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+  
+  .clear-search-btn {
+    background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); padding: 0 6px; line-height: 1; border-radius: 6px; transition: color 0.2s;
+  }
+  .clear-search-btn:hover { color: var(--danger); }
+
   .hint-text { font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; padding: 0 4px; font-weight: 500; }
-  #scroll-area { flex: 1; overflow-y: auto; padding: 8px 12px 12px 12px; max-height: 45vh; -webkit-overflow-scrolling: touch; }
+  
+  #search-results-wrapper { display: none; flex-direction: column; flex: 1; min-height: 0; background: #fff; }
+  #scroll-area { padding: 8px 12px 12px 12px; overflow-y: auto; flex: 1; }
   #scroll-area::-webkit-scrollbar { width: 5px; }
   #scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   #results-container { display: flex; flex-direction: column; gap: 8px; }
+  
+  .main-panel.searching #search-results-wrapper { display: flex !important; }
+  .main-panel.searching #panel-content-wrapper { flex: none; }
+  .main-panel.searching .panel-body { display: none !important; }
+
   .result-item { padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; background: white; transition: all 0.2s ease; }
   .result-item:hover, .result-item.active { border-color: #93c5fd; background-color: #eff6ff; }
   .result-title { font-weight: 600; color: var(--text-primary); font-size: 0.88rem; margin-bottom: 2px; }
@@ -552,21 +569,19 @@ if (isset($_GET['api'])) {
   #more-btn { width: 100%; margin-top: 8px; padding: 10px; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-size: 0.82rem; font-weight: 600; display: none; transition: background-color 0.2s; }
   #more-btn:hover { background: #e2e8f0; }
   
-  .toggle-btn { background: none; border: none; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); border-radius: 8px; margin-left: 4px; }
+  .toggle-btn { background: none; border: none; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); border-radius: 8px; }
   .toggle-btn:hover { background-color: #f1f5f9; }
   .toggle-btn svg { width: 20px; height: 20px; fill: currentColor; transition: transform 0.3s ease; }
-  .search-card.collapsed #scroll-area, .search-card.collapsed .hint-text { display: none; }
-  .search-card.collapsed #toggle-icon { transform: rotate(180deg); }
+  
+  .main-panel.collapsed #search-results-wrapper,
+  .main-panel.collapsed #panel-content-wrapper,
+  .main-panel.collapsed .hint-text { display: none !important; }
+  .main-panel.collapsed #toggle-icon { transform: rotate(180deg); }
 
-  /* Foursquare Check-in Sidebar Card */
-  .sidebar-card {
-    position: absolute; top: 16px; right: 16px; z-index: 1000; width: 380px; max-width: calc(100vw - 32px);
-    max-height: calc(100vh - 120px); display: flex; flex-direction: column; background: var(--panel-bg);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15); overflow: hidden; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .tab-nav { display: flex; border-bottom: 1px solid var(--border-color); background: rgba(248, 250, 252, 0.8); }
-  .tab-btn { flex: 1; padding: 12px 8px; text-align: center; border: none; background: none; font-weight: 600; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+  /* Navigation Tabs & Main Sidebar Body */
+  #panel-content-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .tab-nav { display: flex; border-bottom: 1px solid var(--border-color); background: rgba(248, 250, 252, 0.9); flex-shrink: 0; }
+  .tab-btn { flex: 1; padding: 6px 1px; text-align: center; border: none; background: none; font-weight: 600; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
   .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: #fff; }
 
   .panel-body { flex: 1; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
@@ -577,6 +592,9 @@ if (isset($_GET['api'])) {
   .place-item:hover, .place-item.active { border-color: var(--primary); background: #eff6ff; transform: translateY(-1px); }
   .place-title { font-weight: 600; font-size: 0.88rem; color: var(--text-primary); }
   .place-meta { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+  .osm-history-link { color: var(--primary); text-decoration: none; font-weight: 600; transition: text-decoration 0.2s; }
+  .osm-history-link:hover { text-decoration: underline; }
 
   .zoom-location-btn {
     position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 1000;
@@ -660,9 +678,8 @@ if (isset($_GET['api'])) {
   .place-label-tooltip::before { display: none !important; }
 
   @media (max-width: 768px) {
-    .search-card { top: 8px; left: 8px; right: 8px; width: auto; max-width: none; }
-    .sidebar-card { top: auto; bottom: 8px; left: 8px; right: 8px; width: auto; max-width: none; max-height: 48vh; }
-    .zoom-location-btn { bottom: calc(48vh + 16px); font-size: 0.78rem; padding: 9px 16px; }
+    .main-panel { top: 8px; left: 8px; right: 8px; width: auto; max-width: none; max-height: 52vh; }
+    .zoom-location-btn { bottom: 16px; font-size: 0.78rem; padding: 9px 16px; }
   }
 </style>
 </head>
@@ -671,6 +688,7 @@ if (isset($_GET['api'])) {
 <div id="app-header">
   <h1><span>📍</span>ivebeen_here</h1>
   <div class="user-badge">
+    <button id="clear-all-btn" class="btn-clear" style="display: none;">🧹 Clear Markers</button>
     <?php if (isset($_SESSION['osm_user'])): ?>
       <span class="user-name" onclick="openUserProfile('<?php echo htmlspecialchars($_SESSION['osm_user']['id']); ?>')">
         👤 <?php echo htmlspecialchars($_SESSION['osm_user']['display_name']); ?>
@@ -685,57 +703,62 @@ if (isset($_GET['api'])) {
 <div id="main-container">
   <div id="map"></div>
 
-  <!-- Photon Search Card UI -->
-  <div class="search-card">
+  <!-- Google Maps Style Single Side Panel -->
+  <div class="main-panel">
     <div class="search-header">
       <div class="search-input-wrapper">
         <svg class="search-icon" viewBox="0 0 24 24">
           <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
         </svg>
         <input type="text" id="search-input" class="search-input" placeholder="Search places with Photon..." autocomplete="off">
-        <button type="button" id="toggle-btn" class="toggle-btn" title="Toggle search panel">
+        <button type="button" id="clear-search-btn" class="clear-search-btn" title="Clear search" style="display: none;">&times;</button>
+        <button type="button" id="toggle-btn" class="toggle-btn" title="Toggle side panel">
           <svg id="toggle-icon" viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
         </button>
       </div>
       <div class="hint-text">Click to center map • Right-click to copy coordinates</div>
     </div>
-    <div id="scroll-area">
-      <div id="results-container"></div>
-      <button id="more-btn">Load More Results</button>
+
+    <!-- Search Results View -->
+    <div id="search-results-wrapper">
+      <div id="scroll-area">
+        <div id="results-container"></div>
+        <button id="more-btn">Load More Results</button>
+      </div>
+    </div>
+
+    <!-- Panel Content Navigation & Tabs -->
+    <div id="panel-content-wrapper">
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('places')">Places</button>
+        <button class="tab-btn" onclick="switchTab('active')">Active</button>
+        <button class="tab-btn" onclick="switchTab('discover')">Discover</button>
+      </div>
+
+      <div id="tab-places" class="panel-body">
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top:4px;">Zoom in closer (level 16+) and click "Show all locations around here" to explore places on the map.</p>
+        <div id="places-list"></div>
+      </div>
+
+      <div id="tab-active" class="panel-body" style="display: none;">
+        <div id="active-location-info">
+          <p style="color: var(--text-muted); font-size: 0.8rem; margin-top:4px;">Select a place on the map or from the list to view check-ins and write posts.</p>
+        </div>
+        <div id="active-composer-container"></div>
+        <div id="active-posts-list"></div>
+      </div>
+
+      <div id="tab-discover" class="panel-body" style="display: none;">
+        <button onclick="scanBboxReviews()" class="load-more-btn" style="margin-bottom: 10px; background: #eff6ff; color: #2563eb; border-color: #bfdbfe;">
+          🔍 Scan Map Area for Reviewed Places
+        </button>
+        <div id="discover-posts-list"></div>
+        <button id="discover-load-more" class="load-more-btn" style="display:none;" onclick="loadGlobalPosts(true)">Load More</button>
+      </div>
     </div>
   </div>
 
   <button id="show-locations-btn" class="zoom-location-btn">📍 Show all locations around here (Zoom: 2)</button>
-
-  <!-- Foursquare Social Sidebar Card -->
-  <div class="sidebar-card">
-    <div class="tab-nav">
-      <button class="tab-btn active" onclick="switchTab('places')">Places</button>
-      <button class="tab-btn" onclick="switchTab('active')">Active</button>
-      <button class="tab-btn" onclick="switchTab('discover')">Discover</button>
-    </div>
-
-    <div id="tab-places" class="panel-body">
-      <p style="color: var(--text-muted); font-size: 0.8rem; margin-top:4px;">Zoom in closer (level 16+) and click "Show all locations around here" to explore places on the map.</p>
-      <div id="places-list"></div>
-    </div>
-
-    <div id="tab-active" class="panel-body" style="display: none;">
-      <div id="active-location-info">
-        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top:4px;">Select a place on the map or from the list to view check-ins and write posts.</p>
-      </div>
-      <div id="active-composer-container"></div>
-      <div id="active-posts-list"></div>
-    </div>
-
-    <div id="tab-discover" class="panel-body" style="display: none;">
-      <button onclick="scanBboxReviews()" class="load-more-btn" style="margin-bottom: 10px; background: #eff6ff; color: #2563eb; border-color: #bfdbfe;">
-        🔍 Scan Map Area for Reviewed Places
-      </button>
-      <div id="discover-posts-list"></div>
-      <button id="discover-load-more" class="load-more-btn" style="display:none;" onclick="loadGlobalPosts(true)">Load More</button>
-    </div>
-  </div>
 </div>
 
 <div id="toast" class="toast">Copied to clipboard!</div>
@@ -815,6 +838,39 @@ if (isset($_GET['api'])) {
   map.on('zoomend moveend load', updateZoomBtnState);
   updateZoomBtnState();
 
+  // --- GLOBAL MARKER VISIBILITY CHECKER ---
+  const clearAllBtn = document.getElementById('clear-all-btn');
+  
+  function updateClearButtonVisibility() {
+    const hasPhoton = !!photonMarker;
+    const hasActive = !!standaloneSelectedMarker;
+    const hasOverpass = activeMarkersLayer.getLayers().length > 0;
+    
+    if (hasPhoton || hasActive || hasOverpass) {
+      clearAllBtn.style.display = 'block';
+    } else {
+      clearAllBtn.style.display = 'none';
+    }
+  }
+
+  function clearEverything() {
+    clearSearchResults();
+    activeMarkersLayer.clearLayers();
+    nearbyMarkersMap = {};
+    
+    if (standaloneSelectedMarker) {
+      map.removeLayer(standaloneSelectedMarker);
+      standaloneSelectedMarker = null;
+    }
+    
+    activeLocation = null;
+    document.getElementById('places-list').innerHTML = '';
+    switchTab('places');
+    updateClearButtonVisibility();
+  }
+
+  clearAllBtn.addEventListener('click', clearEverything);
+
   // --- PHOTON SEARCH FEATURE ---
   let photonMarker = null;
   let allPhotonResults = [];
@@ -823,31 +879,63 @@ if (isset($_GET['api'])) {
   let typingTimer;
 
   const searchInput = document.getElementById('search-input');
+  const clearSearchBtn = document.getElementById('clear-search-btn');
   const resultsContainer = document.getElementById('results-container');
+  const searchResultsWrapper = document.getElementById('search-results-wrapper');
   const moreBtn = document.getElementById('more-btn');
-  const searchCard = document.querySelector('.search-card');
+  const mainPanel = document.querySelector('.main-panel');
   const toggleBtn = document.getElementById('toggle-btn');
   const toast = document.getElementById('toast');
 
-  toggleBtn.addEventListener('click', () => searchCard.classList.toggle('collapsed'));
-  searchInput.addEventListener('focus', () => searchCard.classList.remove('collapsed'));
+  toggleBtn.addEventListener('click', () => mainPanel.classList.toggle('collapsed'));
+  
+  searchInput.addEventListener('focus', () => {
+    mainPanel.classList.remove('collapsed');
+    if (searchInput.value.trim().length > 0 && allPhotonResults.length > 0) {
+      mainPanel.classList.add('searching');
+    }
+  });
 
   searchInput.addEventListener('input', () => {
+    if (searchInput.value.trim().length > 0) {
+      clearSearchBtn.style.display = 'block';
+    } else {
+      clearSearchBtn.style.display = 'none';
+      mainPanel.classList.remove('searching');
+    }
     clearTimeout(typingTimer);
     typingTimer = setTimeout(performPhotonSearch, 400);
   });
+
+  clearSearchBtn.addEventListener('click', clearSearchResults);
+
+  function clearSearchResults() {
+    searchInput.value = '';
+    clearSearchBtn.style.display = 'none';
+    resultsContainer.innerHTML = '';
+    mainPanel.classList.remove('searching');
+    moreBtn.style.display = 'none';
+    
+    if (photonMarker) {
+      map.removeLayer(photonMarker);
+      photonMarker = null;
+    }
+    allPhotonResults = [];
+    photonDisplayedCount = 0;
+    updateClearButtonVisibility();
+  }
 
   moreBtn.addEventListener('click', renderMorePhotonResults);
 
   async function performPhotonSearch() {
     const query = searchInput.value.trim();
     if (!query) {
-      resultsContainer.innerHTML = '';
-      moreBtn.style.display = 'none';
+      clearSearchResults();
       return;
     }
 
-    searchCard.classList.remove('collapsed');
+    mainPanel.classList.remove('collapsed');
+    mainPanel.classList.add('searching');
     resultsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; padding: 4px;">Searching...</p>';
     moreBtn.style.display = 'none';
     photonDisplayedCount = 0;
@@ -893,7 +981,7 @@ if (isset($_GET['api'])) {
       item.addEventListener('click', () => {
         document.querySelectorAll('.result-item').forEach(el => el.classList.remove('active'));
         item.classList.add('active');
-        searchCard.classList.add('collapsed');
+        mainPanel.classList.remove('searching');
         
         map.flyTo([lat, lon], 16, { duration: 1.5 });
         
@@ -901,6 +989,8 @@ if (isset($_GET['api'])) {
         photonMarker = L.marker([lat, lon], { icon: activeMarkerIcon }).addTo(map)
           .bindPopup(`<b>${titleText}</b><br>${contextParts}`)
           .openPopup();
+
+        updateClearButtonVisibility();
 
         selectActiveLocation({
           type: props.osm_type || 'node',
@@ -933,11 +1023,16 @@ if (isset($_GET['api'])) {
   let activeLocation = null;
   let activeMarkersLayer = L.layerGroup().addTo(map);
   let nearbyMarkersMap = {};
+  let standaloneSelectedMarker = null;
 
   showLocationsBtn.addEventListener('click', fetchNearbyPlaces);
 
   async function fetchNearbyPlaces() {
     if (map.getZoom() < 16) return;
+    
+    // Clear recent search result when fetching nearby places
+    clearSearchResults();
+
     const bounds = map.getBounds();
     const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
     const query = `[out:json][timeout:15];(node["name"](${bbox});way["name"](${bbox});relation["name"](${bbox}););out center 50;`;
@@ -975,10 +1070,20 @@ if (isset($_GET['api'])) {
 
           nearbyMarkersMap[key] = { marker, loc: locObj };
 
+	const typeMap = { N: 'node', W: 'way', R: 'relation' };
+const resolvedType = typeMap[type] || type;
+const historyUrl = `https://pewu.github.io/osm-history/#/${resolvedType}/${id}`;
+
           const item = document.createElement('div');
           item.className = `place-item ${isSelected ? 'active' : ''}`;
           item.id = `place-item-${key}`;
-          item.innerHTML = `<div class="place-title">${name}</div><div class="place-meta">${type.toUpperCase()} #${id}</div>`;
+          item.innerHTML = `
+            <div class="place-title">${name}</div>
+            <div class="place-meta">
+              <a href="${historyUrl}" target="_blank" rel="noopener" class="osm-history-link" onclick="event.stopPropagation();">
+                ${type.toUpperCase()} #${id} ↗
+              </a>
+            </div>`;
           item.onclick = () => {
             map.flyTo([lat, lng], 17);
             selectActiveLocation(locObj);
@@ -991,6 +1096,8 @@ if (isset($_GET['api'])) {
     } catch (e) {
       placesList.innerHTML = '<p style="color:var(--danger); font-size:0.8rem;">Error fetching places from Overpass API.</p>';
     }
+    
+    updateClearButtonVisibility();
   }
 
   function updateMarkerStyles() {
@@ -1016,12 +1123,36 @@ if (isset($_GET['api'])) {
   function selectActiveLocation(loc) {
     activeLocation = loc;
     updateMarkerStyles();
+
+    // Ensure map marker exists even if location wasn't in Overpass list (e.g. from Discover or Search)
+    const key = `${loc.type}:${loc.id}`;
+    if (!nearbyMarkersMap[key]) {
+      if (standaloneSelectedMarker) {
+        map.removeLayer(standaloneSelectedMarker);
+      }
+      standaloneSelectedMarker = L.marker([loc.lat, loc.lng], { icon: activeMarkerIcon, zIndexOffset: 1000 }).addTo(map);
+      standaloneSelectedMarker.bindTooltip(loc.name, { permanent: true, direction: 'top', className: 'place-label-tooltip', offset: [0, -28] });
+    } else if (standaloneSelectedMarker) {
+      map.removeLayer(standaloneSelectedMarker);
+      standaloneSelectedMarker = null;
+    }
+
+    updateClearButtonVisibility();
     switchTab('active');
+
+	const typeMap = { N: 'node', W: 'way', R: 'relation' };
+const resolvedType = typeMap[loc.type] || type;
+const historyUrl = `https://pewu.github.io/osm-history/#/${resolvedType}/${loc.id}`;
+
 
     const info = document.getElementById('active-location-info');
     info.innerHTML = `<div style="background:#f1f5f9; padding:10px 12px; border-radius:10px; margin-bottom:12px; border:1px solid #e2e8f0;">
       <strong style="font-size:0.92rem; color:var(--text-primary);">${escapeHtml(loc.name)}</strong>
-      <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${loc.type.toUpperCase()} #${loc.id}</div>
+      <div style="font-size:0.75rem; margin-top:2px;">
+        <a href="${historyUrl}" target="_blank" rel="noopener" class="osm-history-link">
+          ${loc.type.toUpperCase()} #${loc.id} ↗
+        </a>
+      </div>
     </div>`;
 
     renderComposer();
@@ -1206,12 +1337,21 @@ if (isset($_GET['api'])) {
       data.locations.forEach(loc => {
         const marker = L.marker([loc.lat, loc.lng], { icon: defaultMarkerIcon }).addTo(activeMarkersLayer);
         marker.bindTooltip(loc.osm_name, { permanent: true, direction: 'top', className: 'place-label-tooltip', offset: [0, -28] });
-        marker.bindPopup(`<b>${escapeHtml(loc.osm_name)}</b><br>${loc.post_count} review(s)`);
+        
+        const locObj = { type: loc.osm_type, id: loc.osm_id, name: loc.osm_name, lat: loc.lat, lng: loc.lng };
+        marker.on('click', () => {
+          selectActiveLocation(locObj);
+        });
+
+        const key = `${loc.osm_type}:${loc.osm_id}`;
+        nearbyMarkersMap[key] = { marker, loc: locObj };
       });
-      alert(`Found ${data.locations.length} reviewed place(s) in this map view.`);
+      alert(`Found ${data.locations.length} reviewed place(s) in this map view. Click any marker to view its reviews.`);
     } else {
       alert('No reviewed places found in current view area.');
     }
+    
+    updateClearButtonVisibility();
   }
 
   function createPostCard(p, showLocationTag = false) {
@@ -1317,6 +1457,8 @@ if (isset($_GET['api'])) {
   }
 
   function switchTab(tabName) {
+    clearSearchResults();
+    
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById('tab-places').style.display = 'none';
     document.getElementById('tab-active').style.display = 'none';

@@ -489,7 +489,7 @@ if (isset($_GET['api'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>ivebeen_here</title>
+<title>whathappened.here</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -686,7 +686,7 @@ if (isset($_GET['api'])) {
 <body>
 
 <div id="app-header">
-  <h1><span>📍</span>ivebeen_here</h1>
+  <h1><span>📍</span>whathappened.here</h1>
   <div class="user-badge">
     <button id="clear-all-btn" class="btn-clear" style="display: none;">🧹 Clear Markers</button>
     <?php if (isset($_SESSION['osm_user'])): ?>
@@ -1070,9 +1070,9 @@ if (isset($_GET['api'])) {
 
           nearbyMarkersMap[key] = { marker, loc: locObj };
 
-	const typeMap = { N: 'node', W: 'way', R: 'relation' };
-const resolvedType = typeMap[type] || type;
-const historyUrl = `https://pewu.github.io/osm-history/#/${resolvedType}/${id}`;
+          const typeMap = { N: 'node', W: 'way', R: 'relation' };
+          const resolvedType = typeMap[type] || type;
+          const historyUrl = `https://pewu.github.io/osm-history/#/${resolvedType}/${id}`;
 
           const item = document.createElement('div');
           item.className = `place-item ${isSelected ? 'active' : ''}`;
@@ -1140,10 +1140,9 @@ const historyUrl = `https://pewu.github.io/osm-history/#/${resolvedType}/${id}`;
     updateClearButtonVisibility();
     switchTab('active');
 
-	const typeMap = { N: 'node', W: 'way', R: 'relation' };
-const resolvedType = typeMap[loc.type] || type;
-const historyUrl = `https://pewu.github.io/osm-history/#/${resolvedType}/${loc.id}`;
-
+    const typeMap = { N: 'node', W: 'way', R: 'relation' };
+    const resolvedType = typeMap[loc.type] || loc.type;
+    const historyUrl = `https://pewu.github.io/osm-history/#/${resolvedType}/${loc.id}`;
 
     const info = document.getElementById('active-location-info');
     info.innerHTML = `<div style="background:#f1f5f9; padding:10px 12px; border-radius:10px; margin-bottom:12px; border:1px solid #e2e8f0;">
@@ -1409,33 +1408,39 @@ const historyUrl = `https://pewu.github.io/osm-history/#/${resolvedType}/${loc.i
   // --- PROFILES AND PERMALINKS ---
   let profileOffset = 0;
   async function openUserProfile(userId) {
-    profileOffset = 0;
-    document.getElementById('modal-title').innerText = `User Profile (${userId})`;
-    const modalBody = document.getElementById('modal-body');
-    modalBody.innerHTML = '<div id="user-posts-container"></div><button id="user-load-more" class="load-more-btn" style="display:none;">Load More</button>';
-    openModal();
+  profileOffset = 0;
+  document.getElementById('modal-title').innerHTML = `User Profile (${userId}) <a id="osm-profile-link" href="#" target="_blank" rel="noopener" class="osm-history-link" style="font-size: 0.8rem; margin-left: 8px; display: none;">View on OSM ↗</a>`;
+  const modalBody = document.getElementById('modal-body');
+  modalBody.innerHTML = '<div id="user-posts-container"></div><button id="user-load-more" class="load-more-btn" style="display:none;">Load More</button>';
+  openModal();
 
-    await loadUserPosts(userId);
-  }
+  await loadUserPosts(userId);
+}
+ async function loadUserPosts(userId) {
+  const container = document.getElementById('user-posts-container');
+  const loadMoreBtn = document.getElementById('user-load-more');
 
-  async function loadUserPosts(userId) {
-    const container = document.getElementById('user-posts-container');
-    const loadMoreBtn = document.getElementById('user-load-more');
+  const res = await fetch(`?api=get_user_posts&user_id=${userId}&offset=${profileOffset}&limit=10`);
+  const data = await res.json();
 
-    const res = await fetch(`?api=get_user_posts&user_id=${userId}&offset=${profileOffset}&limit=10`);
-    const data = await res.json();
-
-    if (profileOffset === 0) container.innerHTML = '';
-    if (data.posts && data.posts.length > 0) {
-      data.posts.forEach(p => container.appendChild(createPostCard(p, true)));
-      profileOffset += data.posts.length;
-      loadMoreBtn.style.display = data.has_more ? 'block' : 'none';
-      loadMoreBtn.onclick = () => loadUserPosts(userId);
-    } else if (profileOffset === 0) {
-      container.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem;">No posts by this user.</p>';
-      loadMoreBtn.style.display = 'none';
+  if (profileOffset === 0) container.innerHTML = '';
+  if (data.posts && data.posts.length > 0) {
+    const userName = data.posts[0].user_name;
+    const profileLink = document.getElementById('osm-profile-link');
+    if (profileLink && userName) {
+      profileLink.href = `https://www.openstreetmap.org/user/${encodeURIComponent(userName)}`;
+      profileLink.style.display = 'inline';
     }
+
+    data.posts.forEach(p => container.appendChild(createPostCard(p, true)));
+    profileOffset += data.posts.length;
+    loadMoreBtn.style.display = data.has_more ? 'block' : 'none';
+    loadMoreBtn.onclick = () => loadUserPosts(userId);
+  } else if (profileOffset === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem;">No posts by this user.</p>';
+    loadMoreBtn.style.display = 'none';
   }
+}
 
   async function openPermalink(postId) {
     document.getElementById('modal-title').innerText = 'Permalink Post';
@@ -1491,3 +1496,4 @@ const historyUrl = `https://pewu.github.io/osm-history/#/${resolvedType}/${loc.i
 </script>
 </body>
 </html>
+

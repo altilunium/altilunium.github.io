@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full bg-zinc-950 text-zinc-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChronoNote - Timestamped Notes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              500: '#10b981',
+              600: '#059669',
+              900: '#064e3b',
+              950: '#022c22',
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Custom thin scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #09090b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3f3f46;
+    }
+    textarea {
+      field-sizing: content;
+    }
+    .line-row:focus-within {
+      background-color: rgba(24, 24, 27, 0.8);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans bg-zinc-950 text-zinc-100 antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-20 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md px-3 py-2.5 sm:px-6">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-sm font-semibold tracking-tight text-zinc-100 flex items-center gap-1.5 leading-none">
+            ChronoNote
+            <span class="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/50">v1.0</span>
+          </h1>
+          <p class="text-[11px] text-zinc-400 truncate hidden sm:block mt-0.5">Per-line timestamped note taking</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <!-- Export to Clipboard Button -->
+        <button id="exportBtn" onclick="exportNotesTxt()" title="Export note to clipboard"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-950/50 transition active:scale-95">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+          </svg>
+          <span>Export to Clipboard</span>
+        </button>
+
+        <!-- Shortcuts Modal Toggle -->
+        <button onclick="toggleHelpModal(true)" title="Keyboard Shortcuts & Info"
+          class="p-1.5 text-xs font-medium rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </button>
+
+        <!-- Clear All Button -->
+        <button onclick="promptClearAll()" title="Clear all lines"
+          class="p-1.5 text-xs font-medium rounded-md bg-zinc-900 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-zinc-800 hover:border-rose-900/50 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Layout Container -->
+  <div class="flex-1 max-w-4xl w-full mx-auto flex flex-col px-2 sm:px-6 py-3 overflow-hidden">
+    
+    <!-- Utility Bar: Search & Stats -->
+    <div class="flex items-center justify-between gap-2 mb-2 px-1">
+      <!-- Search Input -->
+      <div class="relative flex-1 max-w-xs">
+        <svg class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Search lines or timestamps..."
+          class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 rounded-md pl-8 pr-3 py-1 text-xs text-zinc-200 placeholder-zinc-500 outline-none transition">
+      </div>
+
+      <!-- Line & Word Counters -->
+      <div class="flex items-center gap-3 text-[11px] font-mono text-zinc-400 shrink-0">
+        <span id="lineCountLabel">0 lines</span>
+        <span class="text-zinc-700">•</span>
+        <span id="wordCountLabel">0 words</span>
+      </div>
+    </div>
+
+    <!-- Notes Container (Scrollable) -->
+    <main id="notesList" class="flex-1 overflow-y-auto space-y-1 pr-1 pb-20">
+      <!-- Dynamic Note Rows Render Here -->
+    </main>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden flex-1 flex-col items-center justify-center text-center p-8 text-zinc-500">
+      <svg class="w-12 h-12 mb-3 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+      <p class="text-sm font-medium text-zinc-400">No notes found</p>
+      <p class="text-xs text-zinc-600 mt-1">Type in search or click below to add a new line</p>
+      <button onclick="addNewLineAtBottom()" class="mt-4 px-3 py-1.5 text-xs font-medium bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-md transition">
+        + Add First Line
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Bottom Floating Control Bar -->
+  <div class="fixed bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent pt-6 pb-3 px-4 pointer-events-none z-10">
+    <div class="max-w-4xl mx-auto flex items-center justify-between pointer-events-auto">
+      
+      <!-- Quick Keyboard Tip -->
+      <div class="hidden sm:flex items-center gap-3 text-[11px] text-zinc-400 font-mono bg-zinc-900/80 border border-zinc-800/80 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg">
+        <span><kbd class="text-zinc-300 bg-zinc-800 px-1 py-0.5 rounded border border-zinc-700">Enter</kbd> new line</span>
+        <span><kbd class="text-zinc-300 bg-zinc-800 px-1 py-0.5 rounded border border-zinc-700">Backspace</kbd> merge/delete</span>
+        <span><kbd class="text-zinc-300 bg-zinc-800 px-1 py-0.5 rounded border border-zinc-700">↑/↓</kbd> navigate</span>
+      </div>
+
+      <!-- Add Line FAB -->
+      <button onclick="addNewLineAtBottom()" 
+        class="ml-auto flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-full shadow-lg shadow-emerald-950/80 border border-emerald-400/30 transition transform hover:scale-105 active:scale-95">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>Add Line</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Feedback Banner -->
+  <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transform -translate-y-10 opacity-0 pointer-events-none transition-all duration-200 flex items-center gap-2 px-3.5 py-2 rounded-lg bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-xl text-xs font-medium">
+    <svg id="toastIcon" class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+    </svg>
+    <span id="toastMsg">Action completed</span>
+  </div>
+
+  <!-- Help & Shortcuts Modal -->
+  <div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 max-w-sm w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <h3 class="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Keyboard Shortcuts & Rules
+        </h3>
+        <button onclick="toggleHelpModal(false)" class="text-zinc-500 hover:text-zinc-300">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-2.5 text-xs text-zinc-300 font-sans">
+        <div class="flex items-center justify-between bg-zinc-950 p-2 rounded border border-zinc-800/80">
+          <span class="text-zinc-400">New Line (Current Timestamp)</span>
+          <kbd class="font-mono bg-zinc-800 text-zinc-200 px-1.5 py-0.5 rounded text-[11px] border border-zinc-700">Enter</kbd>
+        </div>
+        <div class="flex items-center justify-between bg-zinc-950 p-2 rounded border border-zinc-800/80">
+          <span class="text-zinc-400">Delete / Merge Line</span>
+          <kbd class="font-mono bg-zinc-800 text-zinc-200 px-1.5 py-0.5 rounded text-[11px] border border-zinc-700">Backspace (at start)</kbd>
+        </div>
+        <div class="flex items-center justify-between bg-zinc-950 p-2 rounded border border-zinc-800/80">
+          <span class="text-zinc-400">Navigate Lines</span>
+          <kbd class="font-mono bg-zinc-800 text-zinc-200 px-1.5 py-0.5 rounded text-[11px] border border-zinc-700">Up / Down Arrows</kbd>
+        </div>
+        <p class="text-[11px] text-zinc-500 pt-1 leading-relaxed">
+          * Editing existing lines will <strong class="text-zinc-300">never</strong> alter their original timestamp.<br>
+          * All data is saved automatically to your browser's local storage.
+        </p>
+      </div>
+
+      <button onclick="toggleHelpModal(false)" class="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg transition">
+        Got it
+      </button>
+    </div>
+  </div>
+
+  <!-- Clear Confirmation Modal -->
+  <div id="clearModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 max-w-xs w-full shadow-2xl space-y-4">
+      <div class="text-center space-y-2">
+        <div class="w-10 h-10 mx-auto rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-zinc-100">Clear all notes?</h3>
+        <p class="text-xs text-zinc-400">This action will remove all timestamped lines. This cannot be undone.</p>
+      </div>
+
+      <div class="flex items-center gap-2 pt-1">
+        <button onclick="toggleClearModal(false)" class="flex-1 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg transition">
+          Cancel
+        </button>
+        <button onclick="confirmClearAll()" class="flex-1 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium rounded-lg transition">
+          Yes, Clear All
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- APP STATE & CONSTANTS ---
+    const STORAGE_KEY = 'chrononote_data_v1';
+    let notes = [];
+    let searchQuery = '';
+    
+    // Caret focus target after rendering
+    let pendingFocus = null; // { index: number, caretPos: number }
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadNotes();
+      if (notes.length === 0) {
+        // Default welcoming content
+        notes = [
+          { id: generateId(), timestamp: getFormattedTimestamp(), text: 'Welcome to ChronoNote!' },
+          { id: generateId(), timestamp: getFormattedTimestamp(), text: 'Press Enter to create a new timestamped line.' },
+          { id: generateId(), timestamp: getFormattedTimestamp(), text: 'Editing a line preserves its original creation timestamp.' }
+        ];
+        saveNotes();
+      }
+      renderNotes();
+    });
+
+    // --- TIMESTAMP GENERATOR ---
+    // Returns timestamp in format [HH.mm.ss]
+    function getFormattedTimestamp() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      return `[${hh}.${mm}.${ss}]`;
+    }
+
+    function generateId() {
+      return 'line_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    }
+
+    // --- STORAGE HANDLERS ---
+    function loadNotes() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          notes = JSON.parse(raw);
+        }
+      } catch (err) {
+        console.error('Failed to load notes from localStorage:', err);
+        notes = [];
+      }
+    }
+
+    function saveNotes() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+        updateStats();
+      } catch (err) {
+        console.error('Failed to save notes:', err);
+      }
+    }
+
+    // --- RENDERING ---
+    function renderNotes() {
+      const container = document.getElementById('notesList');
+      const emptyState = document.getElementById('emptyState');
+
+      const filteredNotes = notes.map((note, originalIndex) => ({ ...note, originalIndex }))
+        .filter(item => {
+          if (!searchQuery) return true;
+          const query = searchQuery.toLowerCase();
+          return item.text.toLowerCase().includes(query) || item.timestamp.toLowerCase().includes(query);
+        });
+
+      if (filteredNotes.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+        updateStats();
+        return;
+      } else {
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+      }
+
+      container.innerHTML = filteredNotes.map((item) => {
+        const idx = item.originalIndex;
+        return `
+          <div data-index="${idx}" class="line-row group flex items-start gap-2 p-1.5 sm:p-2 rounded-lg border border-transparent transition-colors duration-150">
+            
+            <!-- Index & Timestamp Badge -->
+            <div class="flex items-center gap-1.5 shrink-0 pt-0.5 select-none">
+              <span class="text-[10px] font-mono text-zinc-600 w-5 text-right font-medium">${idx + 1}</span>
+              <button onclick="copyLineToClipboard(${idx})" title="Click to copy this single line" 
+                class="font-mono text-[11px] sm:text-xs font-semibold text-emerald-400 bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-800/50 hover:border-emerald-600/60 px-2 py-0.5 rounded-md transition shadow-xs">
+                ${escapeHtml(item.timestamp)}
+              </button>
+            </div>
+
+            <!-- Content Editable Textarea -->
+            <textarea
+              id="textarea-${idx}"
+              rows="1"
+              data-index="${idx}"
+              oninput="handleInput(${idx}, this)"
+              onkeydown="handleKeyDown(event, ${idx}, this)"
+              placeholder="Type line content..."
+              class="flex-1 bg-transparent text-zinc-100 text-xs sm:text-sm font-sans placeholder-zinc-600 outline-none resize-none leading-relaxed py-0.5 border-none focus:ring-0"
+            >${escapeHtml(item.text)}</textarea>
+
+            <!-- Line Actions (Hover / Touch visible) -->
+            <div class="opacity-100 sm:opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 pt-0.5 transition-opacity">
+              <button onclick="addLineBelow(${idx})" title="Insert new line below" class="p-1 text-zinc-500 hover:text-emerald-400 hover:bg-zinc-800 rounded transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              </button>
+              <button onclick="deleteLine(${idx})" title="Delete line" class="p-1 text-zinc-500 hover:text-rose-400 hover:bg-zinc-800 rounded transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+
+      // Auto resize textareas and restore focus
+      notes.forEach((_, idx) => {
+        const ta = document.getElementById(`textarea-${idx}`);
+        if (ta) autoResizeTextarea(ta);
+      });
+
+      if (pendingFocus !== null) {
+        const targetTa = document.getElementById(`textarea-${pendingFocus.index}`);
+        if (targetTa) {
+          targetTa.focus();
+          const pos = Math.min(pendingFocus.caretPos, targetTa.value.length);
+          targetTa.setSelectionRange(pos, pos);
+          // Scroll into view if needed
+          targetTa.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+        pendingFocus = null;
+      }
+
+      updateStats();
+    }
+
+    function autoResizeTextarea(ta) {
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // --- KEYBOARD INTERACTION LOGIC ---
+    function handleKeyDown(e, index, textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      // 1. ENTER KEY: Create new timestamped line below
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+
+        // Split text at caret position
+        const textBefore = text.substring(0, start);
+        const textAfter = text.substring(end);
+
+        notes[index].text = textBefore;
+
+        const newLine = {
+          id: generateId(),
+          timestamp: getFormattedTimestamp(),
+          text: textAfter
+        };
+
+        notes.splice(index + 1, 0, newLine);
+        saveNotes();
+
+        // Focus the newly created line at start
+        pendingFocus = { index: index + 1, caretPos: 0 };
+        renderNotes();
+        showToast('New line created');
+        return;
+      }
+
+      // 2. BACKSPACE KEY: Delete empty line or merge onto previous line
+      if (e.key === 'Backspace' && start === 0 && end === 0) {
+        if (index > 0) {
+          e.preventDefault();
+
+          const prevTextLength = notes[index - 1].text.length;
+          // Merge remaining text into line above
+          notes[index - 1].text += notes[index].text;
+          notes.splice(index, 1);
+
+          saveNotes();
+          // Focus target is previous line at the merge junction
+          pendingFocus = { index: index - 1, caretPos: prevTextLength };
+          renderNotes();
+          return;
+        } else if (notes.length === 1 && notes[0].text === '') {
+          // If it's the last remaining line and empty, prevent default
+          e.preventDefault();
+        }
+      }
+
+      // 3. ARROW UP KEY: Navigate to line above
+      if (e.key === 'ArrowUp' && start === 0) {
+        if (index > 0) {
+          e.preventDefault();
+          pendingFocus = { index: index - 1, caretPos: notes[index - 1].text.length };
+          const prevTa = document.getElementById(`textarea-${index - 1}`);
+          if (prevTa) {
+            prevTa.focus();
+            prevTa.setSelectionRange(notes[index - 1].text.length, notes[index - 1].text.length);
+          }
+        }
+      }
+
+      // 4. ARROW DOWN KEY: Navigate to line below
+      if (e.key === 'ArrowDown' && end === text.length) {
+        if (index < notes.length - 1) {
+          e.preventDefault();
+          const nextTa = document.getElementById(`textarea-${index + 1}`);
+          if (nextTa) {
+            nextTa.focus();
+            nextTa.setSelectionRange(0, 0);
+          }
+        }
+      }
+    }
+
+    // --- INPUT & LINE MUTATION HANDLERS ---
+    function handleInput(index, textarea) {
+      autoResizeTextarea(textarea);
+      notes[index].text = textarea.value;
+      saveNotes();
+    }
+
+    function addLineBelow(index) {
+      const newLine = {
+        id: generateId(),
+        timestamp: getFormattedTimestamp(),
+        text: ''
+      };
+      notes.splice(index + 1, 0, newLine);
+      saveNotes();
+      pendingFocus = { index: index + 1, caretPos: 0 };
+      renderNotes();
+    }
+
+    function addNewLineAtBottom() {
+      const newLine = {
+        id: generateId(),
+        timestamp: getFormattedTimestamp(),
+        text: ''
+      };
+      notes.push(newLine);
+      saveNotes();
+      pendingFocus = { index: notes.length - 1, caretPos: 0 };
+      renderNotes();
+    }
+
+    function deleteLine(index) {
+      notes.splice(index, 1);
+      saveNotes();
+      if (notes.length > 0) {
+        const nextFocusIdx = Math.max(0, index - 1);
+        pendingFocus = { index: nextFocusIdx, caretPos: notes[nextFocusIdx]?.text.length || 0 };
+      }
+      renderNotes();
+      showToast('Line deleted');
+    }
+
+    function handleSearch(val) {
+      searchQuery = val.trim();
+      renderNotes();
+    }
+
+    function updateStats() {
+      const lineCount = notes.length;
+      const totalWords = notes.reduce((acc, note) => {
+        const words = note.text.trim().split(/\s+/).filter(Boolean);
+        return acc + words.length;
+      }, 0);
+
+      document.getElementById('lineCountLabel').textContent = `${lineCount} line${lineCount === 1 ? '' : 's'}`;
+      document.getElementById('wordCountLabel').textContent = `${totalWords} word${totalWords === 1 ? '' : 's'}`;
+    }
+
+    // --- EXPORT & COPY FUNCTIONS ---
+    function getFormattedNoteString() {
+      return notes.map(n => `${n.timestamp} : ${n.text}`).join('\n');
+    }
+
+    function copyAllToClipboard() {
+      if (notes.length === 0) {
+        showToast('Nothing to copy', 'warning');
+        return;
+      }
+      const fullText = getFormattedNoteString();
+      copyToClipboard(fullText, 'Whole note copied to clipboard!');
+    }
+
+    function copyLineToClipboard(index) {
+      const line = notes[index];
+      if (!line) return;
+      const lineText = `${line.timestamp} : ${line.text}`;
+      copyToClipboard(lineText, `Line ${index + 1} timestamp copied!`);
+    }
+
+    function copyToClipboard(text, successMsg) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(successMsg);
+        }).catch(() => {
+          fallbackCopyText(text, successMsg);
+        });
+      } else {
+        fallbackCopyText(text, successMsg);
+      }
+    }
+
+    function fallbackCopyText(text, successMsg) {
+      const tempTextArea = document.createElement('textarea');
+      tempTextArea.value = text;
+      tempTextArea.style.position = 'fixed';
+      tempTextArea.style.left = '-9999px';
+      document.body.appendChild(tempTextArea);
+      tempTextArea.focus();
+      tempTextArea.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg);
+      } catch (err) {
+        showToast('Failed to copy to clipboard', 'error');
+      }
+      document.body.removeChild(tempTextArea);
+    }
+
+    function exportNotesTxt() {
+      if (notes.length === 0) {
+        showToast('Note is empty, nothing to export', 'warning');
+        return;
+      }
+
+      const content = getFormattedNoteString();
+      copyToClipboard(content, 'All timestamped notes exported to clipboard!');
+    }
+
+    // --- MODAL & TOAST UI HELPERS ---
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMsg.textContent = message;
+
+      if (type === 'error') {
+        toastIcon.classList.remove('text-emerald-400');
+        toastIcon.classList.add('text-rose-400');
+      } else {
+        toastIcon.classList.remove('text-rose-400');
+        toastIcon.classList.add('text-emerald-400');
+      }
+
+      toast.classList.remove('-translate-y-10', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-10', 'opacity-0', 'pointer-events-none');
+      }, 2200);
+    }
+
+    function toggleHelpModal(show) {
+      const modal = document.getElementById('helpModal');
+      if (show) {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+      } else {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+      }
+    }
+
+    function promptClearAll() {
+      toggleClearModal(true);
+    }
+
+    function toggleClearModal(show) {
+      const modal = document.getElementById('clearModal');
+      if (show) {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+      } else {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+      }
+    }
+
+    function confirmClearAll() {
+      notes = [];
+      saveNotes();
+      renderNotes();
+      toggleClearModal(false);
+      showToast('All notes cleared');
+    }
+  </script>
+</body>
+</html>

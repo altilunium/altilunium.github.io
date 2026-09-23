@@ -4,7 +4,9 @@ const ASSETS = [
     "./",
     "./index.html",
     "./manifest.json",
-    "./tailwind.js"
+    "./tailwind.js",
+    "./icon-192.png",
+    "./icon-512.png",
 ];
 
 self.addEventListener("install", event => {

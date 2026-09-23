@@ -3,7 +3,8 @@ const CACHE = "c-v1";
 const ASSETS = [
     "./",
     "./index.html",
-    "./manifest.json"
+    "./manifest.json",
+    "./tailwind.js"
 ];
 
 self.addEventListener("install", event => {

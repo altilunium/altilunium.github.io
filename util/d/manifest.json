@@ -7,14 +7,14 @@
   "theme_color": "#24292e",
   "icons": [
     {
-      "src": "https://pbs.twimg.com/profile_images/1716831335724326912/8ujZJHcJ_400x400.jpg",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/png"
     },
     {
-      "src": "https://pbs.twimg.com/profile_images/1716831335724326912/8ujZJHcJ_400x400.jpg",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/png"
     }
   ]
 }

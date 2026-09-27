@@ -1,46 +1,69 @@
 <!DOCTYPE html>
-<html lang="en" class="dark h-full bg-zinc-950 text-zinc-100">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
   <title>ChronoNote - Timestamped Notes</title>
-  <script src="tailwind.js"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#ecfdf5',
-              500: '#10b981',
-              600: '#059669',
-              900: '#064e3b',
-              950: '#022c22',
-            }
-          },
-          fontFamily: {
-            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
-            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
   <style>
-    /* Custom thin scrollbar */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-main: #09090b;
+      --bg-header: rgba(9, 9, 11, 0.9);
+      --bg-surface: #18181b;
+      --bg-surface-hover: #27272a;
+      --border-color: rgba(39, 39, 42, 0.8);
+      --border-light: rgba(63, 63, 70, 0.5);
+      --text-main: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --text-dark: #52525b;
+      --emerald-main: #10b981;
+      --emerald-hover: #059669;
+      --emerald-light: #34d399;
+      --emerald-bg: rgba(16, 185, 129, 0.1);
+      --emerald-border: rgba(16, 185, 129, 0.2);
+      --rose-main: #e11d48;
+      --rose-hover: #be123c;
+      --rose-light: #fb7185;
+      --rose-bg: rgba(225, 29, 72, 0.1);
+      --rose-border: rgba(225, 29, 72, 0.2);
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #09090b;
+      background: var(--bg-main);
     }
     ::-webkit-scrollbar-thumb {
       background: #27272a;
@@ -49,124 +72,778 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #3f3f46;
     }
-    textarea {
-      field-sizing: content;
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-header);
+      backdrop-filter: blur(12px);
+      padding: 0.625rem 0.75rem;
     }
+
+    @media (min-width: 640px) {
+      header {
+        padding: 0.625rem 1.5rem;
+      }
+    }
+
+    .header-container {
+      max-width: 56rem;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      padding: 0.375rem;
+      border-radius: 0.5rem;
+      background: var(--emerald-bg);
+      border: 1px solid var(--emerald-border);
+      color: var(--emerald-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      line-height: 1;
+    }
+
+    .version-tag {
+      font-size: 10px;
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+      background: var(--bg-surface-hover);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 0.125rem;
+    }
+
+    @media (max-width: 639px) {
+      .brand-subtitle {
+        display: none;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 640px) {
+      .header-actions {
+        gap: 0.5rem;
+      }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: 0.375rem;
+      padding: 0.375rem 0.625rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      background: transparent;
+      color: var(--text-main);
+    }
+
+    .btn-emerald {
+      background-color: var(--emerald-hover);
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-emerald:hover {
+      background-color: var(--emerald-main);
+    }
+
+    .btn-emerald:active {
+      transform: scale(0.95);
+    }
+
+    .btn-icon-only {
+      padding: 0.375rem;
+      background-color: var(--bg-surface);
+      color: var(--text-muted);
+      border-color: var(--border-color);
+    }
+
+    .btn-icon-only:hover {
+      background-color: var(--bg-surface-hover);
+      color: var(--text-main);
+    }
+
+    .btn-icon-danger:hover {
+      background-color: var(--rose-bg);
+      color: var(--rose-light);
+      border-color: var(--rose-border);
+    }
+
+    .main-wrapper {
+      flex: 1;
+      max-width: 56rem;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      padding: 0.75rem 0.5rem;
+      overflow: hidden;
+    }
+
+    @media (min-width: 640px) {
+      .main-wrapper {
+        padding: 0.75rem 1.5rem;
+      }
+    }
+
+    .utility-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      padding: 0 0.25rem;
+    }
+
+    .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 20rem;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.625rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0.875rem;
+      height: 0.875rem;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 0.375rem;
+      padding: 0.25rem 0.75rem 0.25rem 2rem;
+      font-size: 0.75rem;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .search-input:focus {
+      border-color: var(--emerald-main);
+    }
+
+    .stats-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .stats-dot {
+      color: var(--text-dark);
+    }
+
+    .notes-list {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+      padding-bottom: 5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .line-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      padding: 0.375rem 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid transparent;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
     .line-row:focus-within {
       background-color: rgba(24, 24, 27, 0.8);
       border-color: rgba(16, 185, 129, 0.3);
     }
+
+    .line-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      flex-shrink: 0;
+      padding-top: 0.125rem;
+      user-select: none;
+    }
+
+    .line-number {
+      font-size: 10px;
+      color: var(--text-dark);
+      width: 1.25rem;
+      text-align: right;
+      font-weight: 500;
+    }
+
+    .timestamp-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--emerald-light);
+      background-color: rgba(6, 78, 59, 0.5);
+      border: 1px solid rgba(6, 95, 70, 0.5);
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .timestamp-badge:hover {
+      background-color: rgba(6, 95, 70, 0.7);
+      border-color: rgba(16, 185, 129, 0.6);
+    }
+
+    .line-textarea {
+      flex: 1;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 0.8125rem;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      border: none;
+      outline: none;
+      resize: none;
+      line-height: 1.6;
+      padding: 0.125rem 0;
+      field-sizing: content;
+    }
+
+    .line-textarea::placeholder {
+      color: var(--text-dark);
+    }
+
+    .line-actions {
+      opacity: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      flex-shrink: 0;
+      padding-top: 0.125rem;
+      transition: opacity 0.15s ease;
+    }
+
+    @media (min-width: 640px) {
+      .line-actions {
+        opacity: 0;
+      }
+      .line-row:hover .line-actions {
+        opacity: 1;
+      }
+    }
+
+    .action-btn {
+      padding: 0.25rem;
+      color: var(--text-dim);
+      background: transparent;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, background-color 0.15s;
+    }
+
+    .action-btn-add:hover {
+      color: var(--emerald-light);
+      background-color: var(--bg-surface-hover);
+    }
+
+    .action-btn-delete:hover {
+      color: var(--rose-light);
+      background-color: var(--bg-surface-hover);
+    }
+
+    .empty-state {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-dim);
+    }
+
+    .empty-state.visible {
+      display: flex;
+    }
+
+    .empty-icon {
+      width: 3rem;
+      height: 3rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-dark);
+    }
+
+    .empty-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .empty-desc {
+      font-size: 0.75rem;
+      color: var(--text-dark);
+      margin-top: 0.25rem;
+    }
+
+    .empty-btn {
+      margin-top: 1rem;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background-color: var(--emerald-bg);
+      color: var(--emerald-light);
+      border: 1px solid var(--emerald-border);
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .empty-btn:hover {
+      background-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, var(--bg-main) 70%, transparent);
+      padding: 1.5rem 1rem 0.75rem 1rem;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .bottom-container {
+      max-width: 56rem;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: auto;
+    }
+
+    .keyboard-tips {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 11px;
+      color: var(--text-muted);
+      background-color: rgba(24, 24, 27, 0.8);
+      border: 1px solid var(--border-color);
+      padding: 0.375rem 0.75rem;
+      border-radius: 9999px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+
+    @media (min-width: 640px) {
+      .keyboard-tips {
+        display: flex;
+      }
+    }
+
+    kbd {
+      color: var(--text-main);
+      background-color: var(--bg-surface-hover);
+      padding: 0.125rem 0.25rem;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border-light);
+      font-family: inherit;
+    }
+
+    .fab-btn {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background-color: var(--emerald-hover);
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: 9999px;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .fab-btn:hover {
+      background-color: var(--emerald-main);
+      transform: scale(1.03);
+    }
+
+    .fab-btn:active {
+      transform: scale(0.97);
+    }
+
+    .toast {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translate(-50%, -2.5rem);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.875rem;
+      border-radius: 0.5rem;
+      background-color: var(--bg-surface-hover);
+      color: var(--text-main);
+      border: 1px solid var(--border-light);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .toast.visible {
+      transform: translate(-50%, 0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .toast-icon {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .toast-icon.success {
+      color: var(--emerald-light);
+    }
+
+    .toast-icon.error {
+      color: var(--rose-light);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background-color: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-card-help {
+      max-width: 24rem;
+    }
+
+    .modal-card-clear {
+      max-width: 20rem;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #27272a;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .modal-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
+      color: var(--text-main);
+    }
+
+    .shortcut-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+      font-size: 0.75rem;
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--bg-main);
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .shortcut-item span {
+      color: var(--text-muted);
+    }
+
+    .modal-note {
+      font-size: 11px;
+      color: var(--text-dim);
+      padding-top: 0.25rem;
+      line-height: 1.5;
+    }
+
+    .modal-note strong {
+      color: var(--text-muted);
+    }
+
+    .modal-btn-full {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.5rem;
+      background-color: var(--bg-surface-hover);
+      color: var(--text-main);
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .modal-btn-full:hover {
+      background-color: #3f3f46;
+    }
+
+    .clear-icon-wrapper {
+      width: 2.5rem;
+      height: 2.5rem;
+      margin: 0 auto 0.75rem auto;
+      border-radius: 9999px;
+      background-color: var(--rose-bg);
+      border: 1px solid var(--rose-border);
+      color: var(--rose-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .clear-text {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .clear-text h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .clear-text p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .clear-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .clear-actions .btn {
+      flex: 1;
+      padding: 0.375rem 0.5rem;
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-surface-hover);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background-color: #3f3f46;
+    }
+
+    .btn-danger {
+      background-color: var(--rose-hover);
+      color: #ffffff;
+    }
+
+    .btn-danger:hover {
+      background-color: var(--rose-main);
+    }
+
+    .icon-sm {
+      width: 0.875rem;
+      height: 0.875rem;
+    }
+    .icon-md {
+      width: 1rem;
+      height: 1rem;
+    }
+    .icon-lg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
   </style>
 </head>
-<body class="h-full flex flex-col font-sans bg-zinc-950 text-zinc-100 antialiased selection:bg-emerald-500/30 selection:text-emerald-200">
+<body>
 
-  <!-- Top Navigation Bar -->
-  <header class="sticky top-0 z-20 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md px-3 py-2.5 sm:px-6">
-    <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
-      
-      <!-- Brand & Title -->
-      <div class="flex items-center gap-2 min-w-0">
-        <div class="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <header>
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
         <div>
-          <h1 class="text-sm font-semibold tracking-tight text-zinc-100 flex items-center gap-1.5 leading-none">
+          <h1 class="brand-title">
             ChronoNote
-            <span class="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/50">v1.0</span>
+            <span class="version-tag font-mono">v1.0</span>
           </h1>
-          <p class="text-[11px] text-zinc-400 truncate hidden sm:block mt-0.5">Per-line timestamped note taking</p>
+          <p class="brand-subtitle">Per-line timestamped note taking</p>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <!-- Export to Clipboard Button -->
-        <button id="exportBtn" onclick="exportNotesTxt()" title="Export note to clipboard"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-950/50 transition active:scale-95">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="header-actions">
+        <button id="exportBtn" onclick="exportNotesTxt()" title="Export note to clipboard" class="btn btn-emerald">
+          <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
           </svg>
           <span>Export to Clipboard</span>
         </button>
 
-        <!-- Shortcuts Modal Toggle -->
-        <button onclick="toggleHelpModal(true)" title="Keyboard Shortcuts & Info"
-          class="p-1.5 text-xs font-medium rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button onclick="toggleHelpModal(true)" title="Keyboard Shortcuts & Info" class="btn btn-icon-only">
+          <svg class="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </button>
 
-        <!-- Clear All Button -->
-        <button onclick="promptClearAll()" title="Clear all lines"
-          class="p-1.5 text-xs font-medium rounded-md bg-zinc-900 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-zinc-800 hover:border-rose-900/50 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button onclick="promptClearAll()" title="Clear all lines" class="btn btn-icon-only btn-icon-danger">
+          <svg class="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
           </svg>
         </button>
       </div>
-
     </div>
   </header>
 
-  <!-- Main Layout Container -->
-  <div class="flex-1 max-w-4xl w-full mx-auto flex flex-col px-2 sm:px-6 py-3 overflow-hidden">
-    
-    <!-- Utility Bar: Search & Stats -->
-    <div class="flex items-center justify-between gap-2 mb-2 px-1">
-      <!-- Search Input -->
-      <div class="relative flex-1 max-w-xs">
-        <svg class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div class="main-wrapper">
+    <div class="utility-bar">
+      <div class="search-container">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Search lines or timestamps..."
-          class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 rounded-md pl-8 pr-3 py-1 text-xs text-zinc-200 placeholder-zinc-500 outline-none transition">
+        <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Search lines or timestamps..." class="search-input">
       </div>
 
-      <!-- Line & Word Counters -->
-      <div class="flex items-center gap-3 text-[11px] font-mono text-zinc-400 shrink-0">
+      <div class="stats-group font-mono">
         <span id="lineCountLabel">0 lines</span>
-        <span class="text-zinc-700">•</span>
+        <span class="stats-dot">•</span>
         <span id="wordCountLabel">0 words</span>
       </div>
     </div>
 
-    <!-- Notes Container (Scrollable) -->
-    <main id="notesList" class="flex-1 overflow-y-auto space-y-1 pr-1 pb-20">
-      <!-- Dynamic Note Rows Render Here -->
-    </main>
+    <main id="notesList" class="notes-list"></main>
 
-    <!-- Empty State -->
-    <div id="emptyState" class="hidden flex-1 flex-col items-center justify-center text-center p-8 text-zinc-500">
-      <svg class="w-12 h-12 mb-3 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div id="emptyState" class="empty-state">
+      <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
       </svg>
-      <p class="text-sm font-medium text-zinc-400">No notes found</p>
-      <p class="text-xs text-zinc-600 mt-1">Type in search or click below to add a new line</p>
-      <button onclick="addNewLineAtBottom()" class="mt-4 px-3 py-1.5 text-xs font-medium bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-md transition">
-        + Add First Line
-      </button>
+      <p class="empty-title">No notes found</p>
+      <p class="empty-desc">Type in search or click below to add a new line</p>
+      <button onclick="addNewLineAtBottom()" class="empty-btn">+ Add First Line</button>
     </div>
-
   </div>
 
-  <!-- Bottom Floating Control Bar -->
-  <div class="fixed bottom-0 inset-x-0 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent pt-6 pb-3 px-4 pointer-events-none z-10">
-    <div class="max-w-4xl mx-auto flex items-center justify-between pointer-events-auto">
-      
-      <!-- Quick Keyboard Tip -->
-      <div class="hidden sm:flex items-center gap-3 text-[11px] text-zinc-400 font-mono bg-zinc-900/80 border border-zinc-800/80 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg">
-        <span><kbd class="text-zinc-300 bg-zinc-800 px-1 py-0.5 rounded border border-zinc-700">Enter</kbd> new line</span>
-        <span><kbd class="text-zinc-300 bg-zinc-800 px-1 py-0.5 rounded border border-zinc-700">Backspace</kbd> merge/delete</span>
-        <span><kbd class="text-zinc-300 bg-zinc-800 px-1 py-0.5 rounded border border-zinc-700">↑/↓</kbd> navigate</span>
+  <div class="bottom-bar">
+    <div class="bottom-container">
+      <div class="keyboard-tips font-mono">
+        <span><kbd>Enter</kbd> new line</span>
+        <span><kbd>Backspace</kbd> merge/delete</span>
+        <span><kbd>↑/↓</kbd> navigate</span>
       </div>
 
-      <!-- Add Line FAB -->
-      <button onclick="addNewLineAtBottom()" 
-        class="ml-auto flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-full shadow-lg shadow-emerald-950/80 border border-emerald-400/30 transition transform hover:scale-105 active:scale-95">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <button onclick="addNewLineAtBottom()" class="fab-btn">
+        <svg class="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
         </svg>
         <span>Add Line</span>
@@ -174,104 +851,78 @@
     </div>
   </div>
 
-  <!-- Toast Feedback Banner -->
-  <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transform -translate-y-10 opacity-0 pointer-events-none transition-all duration-200 flex items-center gap-2 px-3.5 py-2 rounded-lg bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-xl text-xs font-medium">
-    <svg id="toastIcon" class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div id="toast" class="toast">
+    <svg id="toastIcon" class="toast-icon success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
     </svg>
     <span id="toastMsg">Action completed</span>
   </div>
 
-  <!-- Help & Shortcuts Modal -->
-  <div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 max-w-sm w-full shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <h3 class="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div id="helpModal" class="modal-overlay">
+    <div class="modal-card modal-card-help">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <svg class="icon-md" style="color: var(--emerald-light)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           Keyboard Shortcuts & Rules
         </h3>
-        <button onclick="toggleHelpModal(false)" class="text-zinc-500 hover:text-zinc-300">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <button onclick="toggleHelpModal(false)" class="modal-close">
+          <svg class="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <div class="space-y-2.5 text-xs text-zinc-300 font-sans">
-        <div class="flex items-center justify-between bg-zinc-950 p-2 rounded border border-zinc-800/80">
-          <span class="text-zinc-400">New Line (Current Timestamp)</span>
-          <kbd class="font-mono bg-zinc-800 text-zinc-200 px-1.5 py-0.5 rounded text-[11px] border border-zinc-700">Enter</kbd>
+      <div class="shortcut-list">
+        <div class="shortcut-item">
+          <span>New Line (Current Timestamp)</span>
+          <kbd class="font-mono">Enter</kbd>
         </div>
-        <div class="flex items-center justify-between bg-zinc-950 p-2 rounded border border-zinc-800/80">
-          <span class="text-zinc-400">Delete / Merge Line</span>
-          <kbd class="font-mono bg-zinc-800 text-zinc-200 px-1.5 py-0.5 rounded text-[11px] border border-zinc-700">Backspace (at start)</kbd>
+        <div class="shortcut-item">
+          <span>Delete / Merge Line</span>
+          <kbd class="font-mono">Backspace (at start)</kbd>
         </div>
-        <div class="flex items-center justify-between bg-zinc-950 p-2 rounded border border-zinc-800/80">
-          <span class="text-zinc-400">Navigate Lines</span>
-          <kbd class="font-mono bg-zinc-800 text-zinc-200 px-1.5 py-0.5 rounded text-[11px] border border-zinc-700">Up / Down Arrows</kbd>
+        <div class="shortcut-item">
+          <span>Navigate Lines</span>
+          <kbd class="font-mono">Up / Down Arrows</kbd>
         </div>
-        <p class="text-[11px] text-zinc-500 pt-1 leading-relaxed">
-          * Editing existing lines will <strong class="text-zinc-300">never</strong> alter their original timestamp.<br>
+        <p class="modal-note">
+          * Editing existing lines will <strong>never</strong> alter their original timestamp.<br>
           * All data is saved automatically to your browser's local storage.
         </p>
       </div>
 
-      <button onclick="toggleHelpModal(false)" class="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded-lg transition">
-        Got it
-      </button>
+      <button onclick="toggleHelpModal(false)" class="modal-btn-full">Got it</button>
     </div>
   </div>
 
-  <!-- Clear Confirmation Modal -->
-  <div id="clearModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
-    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 max-w-xs w-full shadow-2xl space-y-4">
-      <div class="text-center space-y-2">
-        <div class="w-10 h-10 mx-auto rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-          </svg>
-        </div>
-        <h3 class="text-sm font-semibold text-zinc-100">Clear all notes?</h3>
-        <p class="text-xs text-zinc-400">This action will remove all timestamped lines. This cannot be undone.</p>
+  <div id="clearModal" class="modal-overlay">
+    <div class="modal-card modal-card-clear">
+      <div class="clear-icon-wrapper">
+        <svg class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+      </div>
+      <div class="clear-text">
+        <h3>Clear all notes?</h3>
+        <p>This action will remove all timestamped lines. This cannot be undone.</p>
       </div>
 
-      <div class="flex items-center gap-2 pt-1">
-        <button onclick="toggleClearModal(false)" class="flex-1 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-lg transition">
-          Cancel
-        </button>
-        <button onclick="confirmClearAll()" class="flex-1 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium rounded-lg transition">
-          Yes, Clear All
-        </button>
+      <div class="clear-actions">
+        <button onclick="toggleClearModal(false)" class="btn btn-secondary">Cancel</button>
+        <button onclick="confirmClearAll()" class="btn btn-danger">Yes, Clear All</button>
       </div>
     </div>
   </div>
 
   <script>
-    // --- APP STATE & CONSTANTS ---
     const STORAGE_KEY = 'chrononote_data_v1';
     let notes = [];
     let searchQuery = '';
-    
-    // Caret focus target after rendering
-    let pendingFocus = null; // { index: number, caretPos: number }
 
-    // --- INITIALIZATION ---
     window.addEventListener('DOMContentLoaded', () => {
-      loadNotes();
-      if (notes.length === 0) {
-        // Default welcoming content
-        notes = [
-          { id: generateId(), timestamp: getFormattedTimestamp(), text: 'Welcome to ChronoNote!' },
-          { id: generateId(), timestamp: getFormattedTimestamp(), text: 'Press Enter to create a new timestamped line.' },
-          { id: generateId(), timestamp: getFormattedTimestamp(), text: 'Editing a line preserves its original creation timestamp.' }
-        ];
-        saveNotes();
-      }
-      renderNotes();
+      initApp();
     });
 
-    // --- TIMESTAMP GENERATOR ---
-    // Returns timestamp in format [HH.mm.ss]
     function getFormattedTimestamp() {
       const now = new Date();
       const hh = String(now.getHours()).padStart(2, '0');
@@ -284,15 +935,11 @@
       return 'line_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
     }
 
-    // --- STORAGE HANDLERS ---
     function loadNotes() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          notes = JSON.parse(raw);
-        }
+        if (raw) notes = JSON.parse(raw);
       } catch (err) {
-        console.error('Failed to load notes from localStorage:', err);
         notes = [];
       }
     }
@@ -300,93 +947,110 @@
     function saveNotes() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-        updateStats();
-      } catch (err) {
-        console.error('Failed to save notes:', err);
-      }
+      } catch (err) {}
+      updateStats();
     }
 
-    // --- RENDERING ---
-    function renderNotes() {
-      const container = document.getElementById('notesList');
-      const emptyState = document.getElementById('emptyState');
-
-      const filteredNotes = notes.map((note, originalIndex) => ({ ...note, originalIndex }))
-        .filter(item => {
-          if (!searchQuery) return true;
-          const query = searchQuery.toLowerCase();
-          return item.text.toLowerCase().includes(query) || item.timestamp.toLowerCase().includes(query);
-        });
-
-      if (filteredNotes.length === 0) {
-        container.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        emptyState.classList.add('flex');
-        updateStats();
-        return;
-      } else {
-        emptyState.classList.add('hidden');
-        emptyState.classList.remove('flex');
+    function initApp() {
+      loadNotes();
+      if (notes.length === 0) {
+        notes = [
+          { id: generateId(), timestamp: getFormattedTimestamp(), text: 'Welcome to ChronoNote!' },
+          { id: generateId(), timestamp: getFormattedTimestamp(), text: 'Press Enter to create a new timestamped line.' },
+          { id: generateId(), timestamp: getFormattedTimestamp(), text: 'Editing a line preserves its original creation timestamp.' }
+        ];
+        saveNotes();
       }
 
-      container.innerHTML = filteredNotes.map((item) => {
-        const idx = item.originalIndex;
-        return `
-          <div data-index="${idx}" class="line-row group flex items-start gap-2 p-1.5 sm:p-2 rounded-lg border border-transparent transition-colors duration-150">
-            
-            <!-- Index & Timestamp Badge -->
-            <div class="flex items-center gap-1.5 shrink-0 pt-0.5 select-none">
-              <span class="text-[10px] font-mono text-zinc-600 w-5 text-right font-medium">${idx + 1}</span>
-              <button onclick="copyLineToClipboard(${idx})" title="Click to copy this single line" 
-                class="font-mono text-[11px] sm:text-xs font-semibold text-emerald-400 bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-800/50 hover:border-emerald-600/60 px-2 py-0.5 rounded-md transition shadow-xs">
-                ${escapeHtml(item.timestamp)}
-              </button>
-            </div>
-
-            <!-- Content Editable Textarea -->
-            <textarea
-              id="textarea-${idx}"
-              rows="1"
-              data-index="${idx}"
-              oninput="handleInput(${idx}, this)"
-              onkeydown="handleKeyDown(event, ${idx}, this)"
-              placeholder="Type line content..."
-              class="flex-1 bg-transparent text-zinc-100 text-xs sm:text-sm font-sans placeholder-zinc-600 outline-none resize-none leading-relaxed py-0.5 border-none focus:ring-0"
-            >${escapeHtml(item.text)}</textarea>
-
-            <!-- Line Actions (Hover / Touch visible) -->
-            <div class="opacity-100 sm:opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 pt-0.5 transition-opacity">
-              <button onclick="addLineBelow(${idx})" title="Insert new line below" class="p-1 text-zinc-500 hover:text-emerald-400 hover:bg-zinc-800 rounded transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              </button>
-              <button onclick="deleteLine(${idx})" title="Delete line" class="p-1 text-zinc-500 hover:text-rose-400 hover:bg-zinc-800 rounded transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-              </button>
-            </div>
-
-          </div>
-        `;
-      }).join('');
-
-      // Auto resize textareas and restore focus
-      notes.forEach((_, idx) => {
-        const ta = document.getElementById(`textarea-${idx}`);
-        if (ta) autoResizeTextarea(ta);
+      const container = document.getElementById('notesList');
+      container.innerHTML = '';
+      notes.forEach((note, idx) => {
+        const row = createRowElement(note, idx);
+        container.appendChild(row);
       });
 
-      if (pendingFocus !== null) {
-        const targetTa = document.getElementById(`textarea-${pendingFocus.index}`);
-        if (targetTa) {
-          targetTa.focus();
-          const pos = Math.min(pendingFocus.caretPos, targetTa.value.length);
-          targetTa.setSelectionRange(pos, pos);
-          // Scroll into view if needed
-          targetTa.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        }
-        pendingFocus = null;
-      }
+      const textareas = container.querySelectorAll('textarea');
+      textareas.forEach(ta => autoResizeTextarea(ta));
 
       updateStats();
+      updateEmptyState();
+    }
+
+    function createRowElement(note, index) {
+      const row = document.createElement('div');
+      row.className = 'line-row font-mono';
+      row.dataset.id = note.id;
+
+      const meta = document.createElement('div');
+      meta.className = 'line-meta';
+
+      const num = document.createElement('span');
+      num.className = 'line-number';
+      num.textContent = index + 1;
+
+      const tsBtn = document.createElement('button');
+      tsBtn.className = 'timestamp-badge font-mono';
+      tsBtn.textContent = note.timestamp;
+      tsBtn.title = 'Click to copy this single line';
+      tsBtn.onclick = () => copyLineToClipboard(getRowIndex(row));
+
+      meta.appendChild(num);
+      meta.appendChild(tsBtn);
+
+      const ta = document.createElement('textarea');
+      ta.className = 'line-textarea';
+      ta.rows = 1;
+      ta.value = note.text;
+      ta.placeholder = 'Type line content...';
+
+      ta.oninput = () => {
+        autoResizeTextarea(ta);
+        const idx = getRowIndex(row);
+        if (idx !== -1) {
+          notes[idx].text = ta.value;
+          saveNotes();
+        }
+      };
+
+      ta.onkeydown = (e) => handleKeyDown(e, row, ta);
+
+      const actions = document.createElement('div');
+      actions.className = 'line-actions';
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'action-btn action-btn-add';
+      addBtn.title = 'Insert new line below';
+      addBtn.innerHTML = `<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`;
+      addBtn.onclick = () => addLineBelow(getRowIndex(row));
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'action-btn action-btn-delete';
+      delBtn.title = 'Delete line';
+      delBtn.innerHTML = `<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`;
+      delBtn.onclick = () => deleteLine(getRowIndex(row));
+
+      actions.appendChild(addBtn);
+      actions.appendChild(delBtn);
+
+      row.appendChild(meta);
+      row.appendChild(ta);
+      row.appendChild(actions);
+
+      return row;
+    }
+
+    function getRowIndex(row) {
+      const container = document.getElementById('notesList');
+      return Array.from(container.children).indexOf(row);
+    }
+
+    function updateRowNumbers() {
+      const container = document.getElementById('notesList');
+      const rows = container.children;
+      for (let i = 0; i < rows.length; i++) {
+        const numEl = rows[i].querySelector('.line-number');
+        if (numEl) numEl.textContent = i + 1;
+      }
     }
 
     function autoResizeTextarea(ta) {
@@ -394,30 +1058,20 @@
       ta.style.height = ta.scrollHeight + 'px';
     }
 
-    function escapeHtml(str) {
-      return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // --- KEYBOARD INTERACTION LOGIC ---
-    function handleKeyDown(e, index, textarea) {
+    function handleKeyDown(e, row, textarea) {
+      const index = getRowIndex(row);
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const text = textarea.value;
 
-      // 1. ENTER KEY: Create new timestamped line below
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-
-        // Split text at caret position
         const textBefore = text.substring(0, start);
         const textAfter = text.substring(end);
 
         notes[index].text = textBefore;
+        textarea.value = textBefore;
+        autoResizeTextarea(textarea);
 
         const newLine = {
           id: generateId(),
@@ -428,65 +1082,73 @@
         notes.splice(index + 1, 0, newLine);
         saveNotes();
 
-        // Focus the newly created line at start
-        pendingFocus = { index: index + 1, caretPos: 0 };
-        renderNotes();
+        const newRow = createRowElement(newLine, index + 1);
+        const container = document.getElementById('notesList');
+        if (index + 1 < container.children.length) {
+          container.insertBefore(newRow, container.children[index + 1]);
+        } else {
+          container.appendChild(newRow);
+        }
+
+        updateRowNumbers();
+        updateEmptyState();
+
+        const newTa = newRow.querySelector('textarea');
+        autoResizeTextarea(newTa);
+        newTa.focus();
+        newTa.setSelectionRange(0, 0);
+        newRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
         showToast('New line created');
         return;
       }
 
-      // 2. BACKSPACE KEY: Delete empty line or merge onto previous line
       if (e.key === 'Backspace' && start === 0 && end === 0) {
         if (index > 0) {
           e.preventDefault();
+          const container = document.getElementById('notesList');
+          const prevRow = container.children[index - 1];
+          const prevTa = prevRow.querySelector('textarea');
+          const prevLen = prevTa.value.length;
 
-          const prevTextLength = notes[index - 1].text.length;
-          // Merge remaining text into line above
           notes[index - 1].text += notes[index].text;
-          notes.splice(index, 1);
+          prevTa.value = notes[index - 1].text;
+          autoResizeTextarea(prevTa);
 
+          notes.splice(index, 1);
+          row.remove();
           saveNotes();
-          // Focus target is previous line at the merge junction
-          pendingFocus = { index: index - 1, caretPos: prevTextLength };
-          renderNotes();
+
+          updateRowNumbers();
+          updateEmptyState();
+
+          prevTa.focus();
+          prevTa.setSelectionRange(prevLen, prevLen);
           return;
         } else if (notes.length === 1 && notes[0].text === '') {
-          // If it's the last remaining line and empty, prevent default
           e.preventDefault();
         }
       }
 
-      // 3. ARROW UP KEY: Navigate to line above
       if (e.key === 'ArrowUp' && start === 0) {
         if (index > 0) {
           e.preventDefault();
-          pendingFocus = { index: index - 1, caretPos: notes[index - 1].text.length };
-          const prevTa = document.getElementById(`textarea-${index - 1}`);
-          if (prevTa) {
-            prevTa.focus();
-            prevTa.setSelectionRange(notes[index - 1].text.length, notes[index - 1].text.length);
-          }
+          const prevRow = document.getElementById('notesList').children[index - 1];
+          const prevTa = prevRow.querySelector('textarea');
+          prevTa.focus();
+          prevTa.setSelectionRange(prevTa.value.length, prevTa.value.length);
         }
       }
 
-      // 4. ARROW DOWN KEY: Navigate to line below
       if (e.key === 'ArrowDown' && end === text.length) {
         if (index < notes.length - 1) {
           e.preventDefault();
-          const nextTa = document.getElementById(`textarea-${index + 1}`);
-          if (nextTa) {
-            nextTa.focus();
-            nextTa.setSelectionRange(0, 0);
-          }
+          const nextRow = document.getElementById('notesList').children[index + 1];
+          const nextTa = nextRow.querySelector('textarea');
+          nextTa.focus();
+          nextTa.setSelectionRange(0, 0);
         }
       }
-    }
-
-    // --- INPUT & LINE MUTATION HANDLERS ---
-    function handleInput(index, textarea) {
-      autoResizeTextarea(textarea);
-      notes[index].text = textarea.value;
-      saveNotes();
     }
 
     function addLineBelow(index) {
@@ -497,8 +1159,20 @@
       };
       notes.splice(index + 1, 0, newLine);
       saveNotes();
-      pendingFocus = { index: index + 1, caretPos: 0 };
-      renderNotes();
+
+      const newRow = createRowElement(newLine, index + 1);
+      const container = document.getElementById('notesList');
+      if (index + 1 < container.children.length) {
+        container.insertBefore(newRow, container.children[index + 1]);
+      } else {
+        container.appendChild(newRow);
+      }
+
+      updateRowNumbers();
+      updateEmptyState();
+
+      const newTa = newRow.querySelector('textarea');
+      newTa.focus();
     }
 
     function addNewLineAtBottom() {
@@ -509,24 +1183,81 @@
       };
       notes.push(newLine);
       saveNotes();
-      pendingFocus = { index: notes.length - 1, caretPos: 0 };
-      renderNotes();
+
+      const newRow = createRowElement(newLine, notes.length - 1);
+      const container = document.getElementById('notesList');
+      container.appendChild(newRow);
+
+      updateRowNumbers();
+      updateEmptyState();
+
+      const newTa = newRow.querySelector('textarea');
+      newTa.focus();
     }
 
     function deleteLine(index) {
+      if (index < 0 || index >= notes.length) return;
       notes.splice(index, 1);
       saveNotes();
+
+      const container = document.getElementById('notesList');
+      const rowToRemove = container.children[index];
+      if (rowToRemove) rowToRemove.remove();
+
+      updateRowNumbers();
+      updateEmptyState();
+
       if (notes.length > 0) {
-        const nextFocusIdx = Math.max(0, index - 1);
-        pendingFocus = { index: nextFocusIdx, caretPos: notes[nextFocusIdx]?.text.length || 0 };
+        const focusIdx = Math.max(0, index - 1);
+        const targetRow = container.children[focusIdx];
+        if (targetRow) {
+          const ta = targetRow.querySelector('textarea');
+          ta.focus();
+          ta.setSelectionRange(ta.value.length, ta.value.length);
+        }
       }
-      renderNotes();
+
       showToast('Line deleted');
     }
 
     function handleSearch(val) {
-      searchQuery = val.trim();
-      renderNotes();
+      searchQuery = val.trim().toLowerCase();
+      const container = document.getElementById('notesList');
+      const rows = container.children;
+      let visibleCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const note = notes[i];
+        if (!note) continue;
+
+        if (!searchQuery) {
+          row.style.display = 'flex';
+          visibleCount++;
+        } else {
+          const matchText = note.text.toLowerCase().includes(searchQuery);
+          const matchTs = note.timestamp.toLowerCase().includes(searchQuery);
+          if (matchText || matchTs) {
+            row.style.display = 'flex';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        }
+      }
+
+      updateEmptyState(visibleCount);
+    }
+
+    function updateEmptyState(visibleCount) {
+      const emptyState = document.getElementById('emptyState');
+      const count = visibleCount !== undefined ? visibleCount : notes.length;
+
+      if (count === 0) {
+        emptyState.classList.add('visible');
+      } else {
+        emptyState.classList.remove('visible');
+      }
     }
 
     function updateStats() {
@@ -540,18 +1271,8 @@
       document.getElementById('wordCountLabel').textContent = `${totalWords} word${totalWords === 1 ? '' : 's'}`;
     }
 
-    // --- EXPORT & COPY FUNCTIONS ---
     function getFormattedNoteString() {
       return notes.map(n => `${n.timestamp} : ${n.text}`).join('\n');
-    }
-
-    function copyAllToClipboard() {
-      if (notes.length === 0) {
-        showToast('Nothing to copy', 'warning');
-        return;
-      }
-      const fullText = getFormattedNoteString();
-      copyToClipboard(fullText, 'Whole note copied to clipboard!');
     }
 
     function copyLineToClipboard(index) {
@@ -595,12 +1316,10 @@
         showToast('Note is empty, nothing to export', 'warning');
         return;
       }
-
       const content = getFormattedNoteString();
       copyToClipboard(content, 'All timestamped notes exported to clipboard!');
     }
 
-    // --- MODAL & TOAST UI HELPERS ---
     function showToast(message, type = 'success') {
       const toast = document.getElementById('toast');
       const toastMsg = document.getElementById('toastMsg');
@@ -608,30 +1327,26 @@
 
       toastMsg.textContent = message;
 
-      if (type === 'error') {
-        toastIcon.classList.remove('text-emerald-400');
-        toastIcon.classList.add('text-rose-400');
+      if (type === 'error' || type === 'warning') {
+        toastIcon.classList.remove('success');
+        toastIcon.classList.add('error');
       } else {
-        toastIcon.classList.remove('text-rose-400');
-        toastIcon.classList.add('text-emerald-400');
+        toastIcon.classList.remove('error');
+        toastIcon.classList.add('success');
       }
 
-      toast.classList.remove('-translate-y-10', 'opacity-0', 'pointer-events-none');
-      toast.classList.add('translate-y-0', 'opacity-100');
+      toast.classList.add('visible');
 
-      setTimeout(() => {
-        toast.classList.remove('translate-y-0', 'opacity-100');
-        toast.classList.add('-translate-y-10', 'opacity-0', 'pointer-events-none');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        toast.classList.remove('visible');
       }, 2200);
     }
 
     function toggleHelpModal(show) {
       const modal = document.getElementById('helpModal');
-      if (show) {
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-      } else {
-        modal.classList.add('opacity-0', 'pointer-events-none');
-      }
+      if (show) modal.classList.add('visible');
+      else modal.classList.remove('visible');
     }
 
     function promptClearAll() {
@@ -640,24 +1355,22 @@
 
     function toggleClearModal(show) {
       const modal = document.getElementById('clearModal');
-      if (show) {
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-      } else {
-        modal.classList.add('opacity-0', 'pointer-events-none');
-      }
+      if (show) modal.classList.add('visible');
+      else modal.classList.remove('visible');
     }
 
     function confirmClearAll() {
       notes = [];
       saveNotes();
-      renderNotes();
+      document.getElementById('notesList').innerHTML = '';
+      updateEmptyState();
       toggleClearModal(false);
       showToast('All notes cleared');
     }
 
-    if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js');
-}
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js");
+    }
   </script>
 </body>
 </html>

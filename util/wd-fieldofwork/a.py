@@ -66,7 +66,7 @@ def generate_html(items, output_path, page_size):
 <style>
     body {
         font-family: system-ui, sans-serif;
-        max-width: 760px;
+        max-width: 80%;
         margin: 40px auto;
         padding: 0 20px;
         color: #202122;
@@ -74,7 +74,7 @@ def generate_html(items, output_path, page_size):
     }
     h1 { font-size: 1.7rem; }
     #status { color: #54595d; margin-bottom: 16px; }
-    #items { display: grid; gap: 10px; }
+    #items { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
     .item {
         display: block;
         padding: 15px 18px;

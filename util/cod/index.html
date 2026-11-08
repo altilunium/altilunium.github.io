@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Midpoint Finder</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        #map {
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+        /* Custom Pulse Marker Animation for Midpoint */
+        .midpoint-pulse {
+            background: rgba(168, 85, 247, 0.4);
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7);
+            animation: pulse-purple 2s infinite;
+        }
+        @keyframes pulse-purple {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7);
+            }
+            70% {
+                transform: scale(1.15);
+                box-shadow: 0 0 0 12px rgba(168, 85, 247, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(168, 85, 247, 0);
+            }
+        }
+        /* Leaflet Control Overrides */
+        .leaflet-touch .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans overflow-hidden">
+
+    <!-- Top Overlay Header & Controls -->
+    <div class="absolute top-4 left-4 right-4 md:left-6 md:right-auto z-10 md:max-w-md w-auto">
+        <div class="bg-slate-800/90 backdrop-blur-md p-5 rounded-2xl shadow-2xl border border-slate-700/50 flex flex-col gap-4">
+            
+            <!-- Title & Status -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-xl text-indigo-400">
+                        <i class="fa-solid fa-route text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-white tracking-wide">Route Midpoint Finder</h1>
+                        <p id="instruction-text" class="text-xs text-slate-400 font-medium">Right-click on map to set Marker A</p>
+                    </div>
+                </div>
+                <button id="reset-btn" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+            </div>
+
+            <!-- Step Progress Indicator -->
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                <div id="step-1" class="py-1.5 px-2 bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-medium rounded-lg flex items-center justify-center gap-1 transition-all">
+                    <i class="fa-solid fa-location-dot text-emerald-400"></i> Start (A)
+                </div>
+                <div id="step-2" class="py-1.5 px-2 bg-slate-700/50 border border-slate-600/40 text-slate-400 font-medium rounded-lg flex items-center justify-center gap-1 transition-all">
+                    <i class="fa-solid fa-location-dot text-rose-400"></i> End (B)
+                </div>
+                <div id="step-3" class="py-1.5 px-2 bg-slate-700/50 border border-slate-600/40 text-slate-400 font-medium rounded-lg flex items-center justify-center gap-1 transition-all">
+                    <i class="fa-solid fa-flag-checkered text-purple-400"></i> Route
+                </div>
+            </div>
+
+            <!-- Route Details Stats Panel (Hidden by default) -->
+            <div id="stats-panel" class="hidden flex flex-col gap-2 pt-2 border-t border-slate-700/60 text-xs">
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-road text-slate-400"></i> Total Route Distance:</span>
+                    <span id="total-distance" class="font-bold text-indigo-400 text-sm">0.0 km</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-clock text-slate-400"></i> Est. Driving Time:</span>
+                    <span id="total-time" class="font-bold text-indigo-400 text-sm">0 mins</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-300 bg-purple-950/40 p-2 rounded-lg border border-purple-800/40 mt-1">
+                    <span class="flex items-center gap-1.5 text-purple-300"><i class="fa-solid fa-bullseye text-purple-400"></i> Distance to Midpoint:</span>
+                    <span id="midpoint-distance" class="font-bold text-purple-300 text-sm">0.0 km</span>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loading-spinner" class="hidden flex items-center justify-center gap-2 py-2 text-xs text-indigo-400">
+                <i class="fa-solid fa-circle-notch fa-spin text-lg"></i> Calculating optimal route & exact midpoint...
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Leaflet Map Container -->
+    <div id="map"></div>
+
+    <script>
+        // Global variables to track state
+        let map;
+        let markerA = null;
+        let markerB = null;
+        let midpointMarker = null;
+        let routePolyline = null;
+        let step = 1; // 1: set A, 2: set B, 3: completed
+
+        // Initialize Map on Load
+        window.onload = function() {
+            initMap();
+        };
+
+        function initMap() {
+            // Default center set to London (can be adjusted or geo-located)
+            map = L.map('map', {
+                zoomControl: false
+            }).setView([51.505, -0.09], 13);
+
+            // Add Zoom Control to bottom right
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            // OpenStreetMap Tile Layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Attach Right-Click Listener to Map
+            map.on('contextmenu', handleRightClick);
+
+            // Setup Reset Button
+            document.getElementById('reset-btn').addEventListener('click', resetApp);
+        }
+
+        // Handle Map Right Click Event
+        function handleRightClick(e) {
+            const { lat, lng } = e.latlng;
+
+            if (step === 1) {
+                // Place Marker A
+                markerA = createCustomMarker([lat, lng], 'A', '#10B981', 'emerald');
+                markerA.addTo(map);
+                
+                step = 2;
+                updateUIState();
+            } else if (step === 2) {
+                // Place Marker B
+                markerB = createCustomMarker([lat, lng], 'B', '#EF4444', 'rose');
+                markerB.addTo(map);
+
+                step = 3;
+                updateUIState();
+
+                // Fetch OSRM Route & Find Midpoint
+                fetchRouteOSRM(markerA.getLatLng(), markerB.getLatLng());
+            }
+        }
+
+        // Create Custom HTML Markers using Leaflet DivIcon
+        function createCustomMarker(latlng, label, colorHex, colorName) {
+            const iconHtml = `
+                <div class="relative flex items-center justify-center">
+                    <div class="w-8 h-8 rounded-full bg-${colorName}-500 text-white font-bold text-sm flex items-center justify-center shadow-lg border-2 border-white transform transition-transform hover:scale-110">
+                        ${label}
+                    </div>
+                    <div class="absolute -bottom-1 w-2 h-2 bg-${colorName}-500 rotate-45 border-r border-b border-white"></div>
+                </div>
+            `;
+
+            const customIcon = L.divIcon({
+                html: iconHtml,
+                className: 'custom-map-marker',
+                iconSize: [32, 38],
+                iconAnchor: [16, 38]
+            });
+
+            return L.marker(latlng, { icon: customIcon });
+        }
+
+        // Fetch Route from OSRM Public API
+        async function fetchRouteOSRM(startLatLng, endLatLng) {
+            showLoading(true);
+            const url = `https://router.project-osrm.org/route/v1/driving/${startLatLng.lng},${startLatLng.lat};${endLatLng.lng},${endLatLng.lat}?overview=full&geometries=geojson`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.code === 'Ok' && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]); // Swap to [lat, lng]
+                    const totalDistanceMeters = route.distance; // Total length in meters
+                    const totalDurationSeconds = route.duration; // Total duration in seconds
+
+                    // Draw Polyline on Map
+                    drawRoutePolyline(coordinates);
+
+                    // Find Exact Midpoint along the polyline path distance
+                    const midpointCoord = calculateExactMidpoint(coordinates, totalDistanceMeters / 2);
+
+                    // Place Midpoint Marker
+                    placeMidpointMarker(midpointCoord);
+
+                    // Display Route Statistics
+                    displayStats(totalDistanceMeters, totalDurationSeconds);
+
+                    // Fit map bounds to encompass the route
+                    map.fitBounds(routePolyline.getBounds(), { padding: [60, 60] });
+                } else {
+                    showError("Could not calculate route between these locations.");
+                }
+            } catch (err) {
+                console.error("OSRM Route Error:", err);
+                showError("Failed to fetch route. Please try again.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Draw Polyline Route
+        function drawRoutePolyline(coordinates) {
+            if (routePolyline) {
+                map.removeLayer(routePolyline);
+            }
+
+            routePolyline = L.polyline(coordinates, {
+                color: '#6366F1', // Indigo color
+                weight: 5,
+                opacity: 0.85,
+                lineJoin: 'round',
+                lineCap: 'round'
+            }).addTo(map);
+        }
+
+        // Calculate the exact coordinate along the polyline corresponding to targetDistance (meters)
+        function calculateExactMidpoint(coords, targetDistance) {
+            let accumulatedDistance = 0;
+
+            for (let i = 0; i < coords.length - 1; i++) {
+                const p1 = L.latLng(coords[i][0], coords[i][1]);
+                const p2 = L.latLng(coords[i + 1][0], coords[i + 1][1]);
+                const segmentDistance = p1.distanceTo(p2); // Distance in meters
+
+                if (accumulatedDistance + segmentDistance >= targetDistance) {
+                    // Midpoint lies in this segment
+                    const remainingDistance = targetDistance - accumulatedDistance;
+                    const fraction = remainingDistance / segmentDistance;
+
+                    // Interpolate latitude and longitude linearly along segment
+                    const interpolatedLat = p1.lat + (p2.lat - p1.lat) * fraction;
+                    const interpolatedLng = p1.lng + (p2.lng - p1.lng) * fraction;
+
+                    return [interpolatedLat, interpolatedLng];
+                }
+
+                accumulatedDistance += segmentDistance;
+            }
+
+            // Fallback: Return last coordinate if target distance exceeds total
+            return coords[coords.length - 1];
+        }
+
+        // Place Midpoint Marker
+        function placeMidpointMarker(latlng) {
+            if (midpointMarker) {
+                map.removeLayer(midpointMarker);
+            }
+
+            const midpointIcon = L.divIcon({
+                html: `
+                    <div class="relative flex items-center justify-center">
+                        <div class="w-9 h-9 rounded-full bg-purple-600 text-white font-bold text-sm flex items-center justify-center shadow-xl border-2 border-white midpoint-pulse">
+                            <i class="fa-solid fa-crosshairs text-xs"></i>
+                        </div>
+                    </div>
+                `,
+                className: 'custom-midpoint-marker',
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+
+            midpointMarker = L.marker(latlng, { icon: midpointIcon }).addTo(map);
+            midpointMarker.bindPopup(`
+                <div class="text-center font-sans p-1">
+                    <strong class="text-purple-600 block mb-1">Route Midpoint</strong>
+                    <span class="text-xs text-gray-600">${latlng[0].toFixed(5)}, ${latlng[1].toFixed(5)}</span>
+                </div>
+            `).openPopup();
+        }
+
+        // Display Calculated Stats in UI
+        function displayStats(distanceMeters, durationSeconds) {
+            const distanceKm = (distanceMeters / 1000).toFixed(2);
+            const halfDistanceKm = (distanceMeters / 2000).toFixed(2);
+
+            const mins = Math.round(durationSeconds / 60);
+            const hours = Math.floor(mins / 60);
+            const remainingMins = mins % 60;
+            
+            let timeStr = `${mins} mins`;
+            if (hours > 0) {
+                timeStr = `${hours} hr ${remainingMins} mins`;
+            }
+
+            document.getElementById('total-distance').innerText = `${distanceKm} km`;
+            document.getElementById('total-time').innerText = timeStr;
+            document.getElementById('midpoint-distance').innerText = `${halfDistanceKm} km`;
+
+            document.getElementById('stats-panel').classList.remove('hidden');
+        }
+
+        // Update UI step state
+        function updateUIState() {
+            const instr = document.getElementById('instruction-text');
+            const step1El = document.getElementById('step-1');
+            const step2El = document.getElementById('step-2');
+            const step3El = document.getElementById('step-3');
+
+            if (step === 1) {
+                instr.innerText = "Right-click on map to set Marker A (Start)";
+                step1El.className = "py-1.5 px-2 bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-medium rounded-lg flex items-center justify-center gap-1 transition-all";
+                step2El.className = "py-1.5 px-2 bg-slate-700/50 border border-slate-600/40 text-slate-400 font-medium rounded-lg flex items-center justify-center gap-1 transition-all";
+                step3El.className = "py-1.5 px-2 bg-slate-700/50 border border-slate-600/40 text-slate-400 font-medium rounded-lg flex items-center justify-center gap-1 transition-all";
+            } else if (step === 2) {
+                instr.innerText = "Right-click on map to set Marker B (Destination)";
+                step1El.className = "py-1.5 px-2 bg-emerald-950/40 border border-emerald-800/40 text-emerald-400 font-medium rounded-lg flex items-center justify-center gap-1 transition-all";
+                step2El.className = "py-1.5 px-2 bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-medium rounded-lg flex items-center justify-center gap-1 transition-all";
+            } else if (step === 3) {
+                instr.innerText = "Route and exact midpoint calculated!";
+                step2El.className = "py-1.5 px-2 bg-rose-950/40 border border-rose-800/40 text-rose-400 font-medium rounded-lg flex items-center justify-center gap-1 transition-all";
+                step3El.className = "py-1.5 px-2 bg-purple-950/40 border border-purple-800/40 text-purple-300 font-medium rounded-lg flex items-center justify-center gap-1 transition-all";
+            }
+        }
+
+        // Show/Hide Loading Spinner
+        function showLoading(isLoading) {
+            const spinner = document.getElementById('loading-spinner');
+            if (isLoading) {
+                spinner.classList.remove('hidden');
+            } else {
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Simple Error Message Handler
+        function showError(msg) {
+            const instr = document.getElementById('instruction-text');
+            instr.innerText = msg;
+            instr.classList.add('text-rose-400');
+        }
+
+        // Reset App to Initial State
+        function resetApp() {
+            if (markerA) map.removeLayer(markerA);
+            if (markerB) map.removeLayer(markerB);
+            if (midpointMarker) map.removeLayer(midpointMarker);
+            if (routePolyline) map.removeLayer(routePolyline);
+
+            markerA = null;
+            markerB = null;
+            midpointMarker = null;
+            routePolyline = null;
+            step = 1;
+
+            document.getElementById('stats-panel').classList.add('hidden');
+            document.getElementById('instruction-text').classList.remove('text-rose-400');
+            updateUIState();
+        }
+    </script>
+</body>
+</html>

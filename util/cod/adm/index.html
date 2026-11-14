@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Query History & Push Dashboard</title>
+<link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans p-6">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex flex-col md:flex-row items-center justify-between mb-6 bg-slate-800 p-4 rounded-xl border border-slate-700 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-xl text-indigo-400">
+                    <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white tracking-wide">Search Query History & Notifications</h1>
+                    <p class="text-xs text-slate-400">Manage push alerts and view logged queries from your server</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="subscribe-btn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-bell"></i> <span id="sub-btn-text"><?= $isSubscribed ? 'Notifications Enabled' : 'Enable Push Notifications' ?></span>
+                </button>
+                <a href="index.html" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Map
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-700/50 text-slate-400 border-b border-slate-700">
+                            <th class="p-3 font-semibold">Timestamp</th>
+                            <th class="p-3 font-semibold">Search Query</th>
+                            <th class="p-3 font-semibold">IP Address</th>
+                            <th class="p-3 font-semibold">User Identifier (Hash)</th>
+                            <th class="p-3 font-semibold">User Agent</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/60">
+                        <?php if (empty($searches)): ?>
+                            <tr>
+                                <td colspan="5" class="p-6 text-center text-slate-500">No search queries recorded yet.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($searches as $entry): ?>
+                                <tr class="hover:bg-slate-700/30 transition-colors">
+                                    <td class="p-3 text-slate-300 whitespace-nowrap"><?= htmlspecialchars($entry['timestamp'] ?? '') ?></td>
+                                    <td class="p-3 font-medium text-indigo-400"><?= htmlspecialchars($entry['query'] ?? '') ?></td>
+                                    <td class="p-3 text-slate-300 whitespace-nowrap"><?= htmlspecialchars($entry['ip'] ?? '') ?></td>
+                                    <td class="p-3 font-mono text-slate-400 text-[10px] whitespace-nowrap"><?= htmlspecialchars($entry['identifier'] ?? '') ?></td>
+                                    <td class="p-3 text-slate-400 truncate max-w-xs" title="<?= htmlspecialchars($entry['user_agent'] ?? '') ?>"><?= htmlspecialchars($entry['user_agent'] ?? '') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const publicVapidKey = 'BBFWBBzaPVaFY-gyCJwEjy521betREaHqgqRM3P2ve19-mrjlB8FXh4NYrqjb3-EC69zE6WTbON3t6Wvic0vqVY';
+
+        document.getElementById('subscribe-btn').addEventListener('click', async () => {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                alert('Push messaging is not supported by your browser.');
+                return;
+            }
+
+            try {
+                const registration = await navigator.serviceWorker.register('sw.js');
+                const permission = await window.Notification.requestPermission();
+                
+                if (permission !== 'granted') {
+                    alert('Permission for notifications was denied.');
+                    return;
+                }
+
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+                });
+
+                const response = await fetch('history.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subscription)
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    document.getElementById('sub-btn-text').innerText = 'Notifications Enabled';
+                    alert('Successfully subscribed to push notifications!');
+                } else {
+                    alert('Failed to save subscription on server.');
+                }
+            } catch (err) {
+                console.error('Subscription error:', err);
+                alert('An error occurred while enabling notifications.');
+            }
+        });
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+    </script>
+</body>
+</html>
